@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="medx11">
+      <UniqueIdentifier>{aa7e3a98-00f5-403d-a429-d1bd0f1570b7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="medx11\PixelShader.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\Renderer.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\Texture.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\VertexBuffer.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\VertexShader.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\DirectX.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\IndexBuffer.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\MEDX11.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\VertexConstruct.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\RendererFactory.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="medx11\Renderer.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\Texture.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\VertexBuffer.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\VertexShader.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\PixelShader.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\IndexBuffer.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\MEDX11.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\VertexConstruct.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\RendererFactory.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
