@@ -128,7 +128,7 @@ void Texture::Preload()
 
 void Texture::LoadHeader()
 {
-	unify::Path imageHeaderFilepath{ ChangeExtension( m_parameters.source, ".xml" ) };
+	unify::Path imageHeaderFilepath{ unify::ChangeExtension( m_parameters.source, ".xml" ) };
 
 	// Check if the file exists...
 	if ( !imageHeaderFilepath.Exists() )
