@@ -156,7 +156,7 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), false, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::ReadWrite, 0 );
 	m_locked[bufferIndex] = true;
 }
 
@@ -173,7 +173,7 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), true, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::Readonly, 0 );
 	m_locked[bufferIndex] = true;
 }
 

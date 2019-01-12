@@ -33,6 +33,7 @@ namespace medx11
 {									  
 	//////////////////////////////////
 	// Font definitions...
+	//////////////////////////////////
 
 #define FONT_BOLD        0x0001
 #define FONT_ITALIC      0x0002
@@ -67,26 +68,44 @@ namespace medx11
 	
 		const unsigned int FileHeight() const;
 
-		const unify::Size< unsigned int > & ImageSize() const;
+	public: // ITexture
+		
+		const unify::Size< unsigned int > & ImageSize() const override;
 
 		bool GetRenderable() const;
 
 		bool GetLockable() const;
 
 		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, bool readonly );
+		
 		void UnlockRect( unsigned int level );
 
 		me::render::SpriteDictionary & GetSpriteDictionary() override;
+		
 		const me::render::SpriteDictionary & GetSpriteDictionary() const override;
 
 		const me::render::TextureParameters * GetParameters() const override;
+
+	public: // IResource...
 
 		bool Reload() override;
 
 		std::string GetSource() const override;
 
 	protected:
+		/// <summary>
+		/// Create an image from a specific size.
+		/// </summary>
+		void CreateFromSize();
+
+		/// <summary>
+		/// Load an image from a path.
+		/// </summary>
 		void LoadImage( unify::Path filePath );
+
+		/// <summary>
+		/// Load a header for the image.
+		/// </summar>
 		void LoadHeader();
 
 		const Renderer * m_renderer;						   

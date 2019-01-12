@@ -160,7 +160,7 @@ void PixelShader::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, m_constants->GetSizeInBytes( bufferIndex ), false, 0 );
+	lock.SetLock( subresource.pData, m_constants->GetSizeInBytes( bufferIndex ), unify::DataLock::ReadWrite, 0 );
 
 	// Roughly handle defaults...
 	for ( auto variable : m_constants->GetVariables( bufferIndex ) )

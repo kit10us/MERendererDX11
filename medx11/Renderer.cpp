@@ -292,9 +292,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 
 	auto && vertexShader = method.effect->GetVertexShader();
 	auto && constants = vertexShader->GetConstants();
-	auto worldRef = constants->GetWorld();
 
-	size_t matricesPerInstance = matrixFeed.Stride();	   
 	size_t write = 0;	  
 
 	switch( instancing )
@@ -302,7 +300,9 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 	case Instancing::None:
 		{
 			// With no instancing, we except a world matrix in the constant buffer.
+			auto worldRef = constants->GetWorld();
 			auto world = constants->GetVariable( worldRef );
+
 			auto viewRef = constants->GetView();
 			auto projRef = constants->GetProjection();
 
@@ -316,21 +316,21 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 
 					if ( bufferIndex == viewRef.buffer )
 					{
-						unsigned char * data = ((unsigned char *)lock.GetData()) + viewRef.offsetInBytes;
+						unsigned char * data = (lock.GetData< unsigned char >()) + viewRef.offsetInBytes;
 						unify::Matrix* matrix = (unify::Matrix*)data;
 						*matrix = renderInfo.GetViewMatrix();
 					}
 		
 					if ( bufferIndex == projRef.buffer )
 					{
-						unsigned char * data = ((unsigned char *)lock.GetData()) + projRef.offsetInBytes;
+						unsigned char * data = (lock.GetData< unsigned char >()) + projRef.offsetInBytes;
 						unify::Matrix* matrix = (unify::Matrix*)data;
 						*matrix = renderInfo.GetProjectionMatrix();
 					}
 
 					if ( bufferIndex == worldRef.buffer )
 					{	
-						unsigned char * data = ((unsigned char *)lock.GetData()) + worldRef.offsetInBytes;
+						unsigned char * data = (lock.GetData< unsigned char >()) + worldRef.offsetInBytes;
 						unify::Matrix* matrix = (unify::Matrix*)data;
 						write += matrixFeed.Consume( &matrix[write], world.count );
 					}
@@ -355,7 +355,6 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 		break;
 	case Instancing::Matrix:	
 		{
-
 			HRESULT result = S_OK;
 			size_t bufferStride = sizeof( unify::Matrix );
 			size_t offset = 0;
@@ -365,6 +364,9 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 			unify::DataLock lock;
 			D3D11_MAPPED_SUBRESOURCE subResource{};
 
+			// The number of matrices we use per instance.
+			size_t matricesPerInstance = matrixFeed.Stride();
+
 			while ( ! matrixFeed.Done() )
 			{
 				result = m_dxContext->Map( m_instanceBufferM[0], 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subResource );
@@ -373,8 +375,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 				write += matrixFeed.Consume( &((unify::Matrix*)subResource.pData)[write], m_totalInstances );
 
 				size_t instanceCount = write / matricesPerInstance;
-;
-				
+			
 				m_dxContext->Unmap( m_instanceBufferM[0], 0 );
 
 				method.effect->Use( this, renderInfo );

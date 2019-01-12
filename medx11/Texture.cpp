@@ -36,15 +36,15 @@ Texture::~Texture()
 void Texture::Create()
 {
 	// Load from a file.
-	if ( m_parameters.source.Empty() )
+	if ( ! m_parameters.source.Empty() )
 	{
-		throw unify::Exception( "Not enough information to load Texture!" );
+		LoadHeader();
+		LoadImage( m_parameters.source );
 	}
-
-	LoadHeader();
-
-	LoadImage( m_parameters.source );
-
+	else
+	{
+		CreateFromSize();
+	}
 	m_created = true;
 }
 
@@ -92,9 +92,19 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 	{
 		throw exception::FailedToLock( "Texture is not lockable!" );
 	}
-
-	lock.pBits = m_scratch.GetImage( level, 0, 0 )->pixels;
-	lock.uStride = m_scratch.GetImage( level, 0, 0 )->rowPitch;
+		
+	auto dxContext = m_renderer->GetDxContext();
+	D3D11_MAPPED_SUBRESOURCE mappedResource{};
+	auto result = dxContext->Map( m_texture, 0, readonly ? D3D11_MAP_READ : D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
+	if ( FAILED( result ) )
+	{
+		throw unify::Exception( "Failed to lock texture!" );
+	}
+	lock.pBits = (unsigned char*)mappedResource.pData;
+	lock.uWidth = m_imageSize.width;
+	lock.uHeight = m_imageSize.height;
+	lock.uStride = mappedResource.RowPitch;
+	
 	lock.bpp = 4;
 	if ( rect )
 	{
@@ -111,6 +121,8 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 
 void Texture::UnlockRect( unsigned int level )
 {
+	auto dxContext = m_renderer->GetDxContext();
+	dxContext->Unmap( m_texture, 0 );
 }
 
 // Load all possible info (short of bits) about the texture
@@ -124,6 +136,114 @@ void Texture::Preload()
 
 	// Destroy our texture.
 	Destroy();
+}
+
+void Texture::CreateFromSize()
+{
+	auto dxDevice = m_renderer->GetDxDevice();
+
+	// Release any previous texture
+	Destroy();
+
+	HRESULT result = S_OK;
+
+	DirectX::TexMetadata texMetadata{};
+
+	if (FAILED( result ))
+	{
+		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
+	}
+
+	unsigned int width = m_parameters.size.width;
+	unsigned int height = m_parameters.size.height;
+
+	D3D11_TEXTURE2D_DESC textureDesc{};
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DYNAMIC;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	textureDesc.MiscFlags = 0;
+	result = dxDevice->CreateTexture2D( &textureDesc, nullptr, &m_texture );
+	if (FAILED( result ))
+	{
+		Destroy();
+		throw unify::Exception( "Failed to create texture of size " + unify::Cast< std::string >( width ) + "x" + unify::Cast< std::string >( height ) + "!" );
+	}
+
+	D3D11_SAMPLER_DESC colorMapDesc{};
+	colorMapDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	colorMapDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	colorMapDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	colorMapDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+	if (m_parameters.min == Filtering::Point && m_parameters.mag == Filtering::Point && m_parameters.mip == Filtering::Point)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+	else if (m_parameters.min == Filtering::Point && m_parameters.mag == Filtering::Point && m_parameters.mip == Filtering::Linear)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+	}
+	else if (m_parameters.min == Filtering::Point && m_parameters.mag == Filtering::Linear && m_parameters.mip == Filtering::Point)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	}
+	else if (m_parameters.min == Filtering::Point && m_parameters.mag == Filtering::Linear && m_parameters.mip == Filtering::Linear)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	}
+	else if (m_parameters.min == Filtering::Linear && m_parameters.mag == Filtering::Point && m_parameters.mip == Filtering::Point)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+	}
+	else if (m_parameters.min == Filtering::Linear && m_parameters.mag == Filtering::Point && m_parameters.mip == Filtering::Linear)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+	}
+	else if (m_parameters.min == Filtering::Linear && m_parameters.mag == Filtering::Linear && m_parameters.mip == Filtering::Point)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+	}
+	else if (m_parameters.min == Filtering::Linear && m_parameters.mag == Filtering::Linear && m_parameters.mip == Filtering::Linear)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else if (m_parameters.min == Filtering::Anisotropic && m_parameters.mag == Filtering::Anisotropic && m_parameters.mip == Filtering::Anisotropic)
+	{
+		colorMapDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	}
+	else
+	{
+		throw unify::Exception( "Bad filtering combination!" );
+	}
+
+	colorMapDesc.MipLODBias = 0.0f;
+	colorMapDesc.BorderColor[0] = 0;
+	colorMapDesc.BorderColor[1] = 0;
+	colorMapDesc.BorderColor[2] = 0;
+	colorMapDesc.BorderColor[3] = 0;
+	colorMapDesc.MinLOD = 0;
+	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	result = dxDevice->CreateSamplerState( &colorMapDesc, &m_colorMapSampler );
+	assert( !FAILED( result ) );
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC textureResourceDesc{};
+	textureResourceDesc.Format = textureDesc.Format;
+	textureResourceDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	textureResourceDesc.Texture2D.MipLevels = 1;
+	textureResourceDesc.Texture2D.MostDetailedMip = 0;
+
+	result = dxDevice->CreateShaderResourceView( m_texture, &textureResourceDesc, &m_colorMap );
+	assert( !FAILED( result ) );
+
+	m_imageSize.width = width;
+	m_imageSize.height = height;
 }
 
 void Texture::LoadHeader()
@@ -155,10 +275,7 @@ void Texture::LoadImage( unify::Path filePath )
 
 	HRESULT result = S_OK;
 
-	//DirectX::Image sourceImages{};
 	DirectX::TexMetadata texMetadata{};
-
-	//DirectX::ScratchImagem_scratch{};
 
 	if ( m_parameters.source.IsExtension( "DDS" ) )
 	{

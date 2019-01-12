@@ -42,7 +42,7 @@ std::vector< D3D11_INPUT_ELEMENT_DESC > ToDX( const VertexElement & element )
 	case SlotClass::Vertex:
 		out.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 		break;
-	case SlotClass::Object:
+	case SlotClass::Instance:
 		out.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 		break;
 	default:

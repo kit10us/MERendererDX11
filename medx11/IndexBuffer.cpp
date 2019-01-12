@@ -139,7 +139,7 @@ size_t IndexBuffer::Append( size_t bufferIndex, const IndexBuffer & from, size_t
 	for ( size_t i = 0; i < locksrc.Count(); ++i )
 	{
 		size_t to = offset + i;
-		const void * rawData = locksrc.GetItemReadOnly( i );
+		const void * rawData = locksrc.GetItemReadonly< unsigned char >( i );
 		if ( locksrc.Stride() == 2 )
 		{
 			unsigned short fromIndex = *static_cast< const short int * >(rawData);
@@ -177,7 +177,7 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), false, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::ReadWrite, 0 );
 	m_locked = true;
 }
 
@@ -194,7 +194,7 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), true, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::Readonly, 0 );
 	m_locked = true;
 }
 
