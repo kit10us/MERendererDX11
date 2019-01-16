@@ -32,6 +32,8 @@ namespace medx11
 		size_t Append( size_t bufferIndex, const IndexBuffer & from, size_t vertexOffset = 0 );
 		void Destroy();
 
+		size_t GetBufferCount() const override;
+
 		void Lock( size_t bufferIndex, unify::DataLock & lock ) override;
 		void LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
 		void Unlock( size_t bufferIndex, unify::DataLock & lock ) override;
@@ -39,7 +41,7 @@ namespace medx11
 
 		bool Valid() const;
 		
-		void Use() const override;
+		void Use( size_t startBuffer, size_t startSlot ) const override;
 
 		bool Locked( size_t bufferIndex ) const override;
 		me::render::BufferUsage::TYPE GetUsage( size_t bufferIndex ) const override;

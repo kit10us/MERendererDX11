@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="medx11\ConstantBuffer.h" />
+    <ClInclude Include="medx11\Conversion.h" />
     <ClInclude Include="medx11\DirectX.h" />
     <ClInclude Include="medx11\IndexBuffer.h" />
     <ClInclude Include="medx11\MEDX11.h" />
@@ -23,6 +25,8 @@
     <ClInclude Include="medx11\VertexShader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="medx11\ConstantBuffer.cpp" />
+    <ClCompile Include="medx11\Conversion.cpp" />
     <ClCompile Include="medx11\IndexBuffer.cpp" />
     <ClCompile Include="medx11\MEDX11.cpp" />
     <ClCompile Include="medx11\PixelShader.cpp" />

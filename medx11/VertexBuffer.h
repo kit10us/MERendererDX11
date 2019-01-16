@@ -5,6 +5,7 @@
 
 #include <medx11/Renderer.h>
 #include <me/render/IVertexBuffer.h>
+#include <medx11/ConstantBuffer.h>
 #include <unify/BBox.h>
 #include <atlbase.h>
 
@@ -17,36 +18,45 @@ namespace medx11
 		VertexBuffer( me::render::IRenderer * renderer, me::render::VertexBufferParameters parameters );
 		~VertexBuffer();
 
+	public: // me::render::IVertexBuffer
 		void Create( me::render::VertexBufferParameters parameters ) override;
-		void Destroy();
+
+		me::render::VertexDeclaration::ptr GetVertexDeclaration() const override;
+
+		unify::BBox< float > & GetBBox() override;
+		const unify::BBox< float > & GetBBox() const override;
+
+		bool Valid() const;
+
+	public: // me::render::IBuffer
+		void Destroy() override;
+
+		size_t GetBufferCount() const override;
+
+		void Use( size_t startBuffer, size_t startSlot ) const override;
 
 		void Lock( size_t bufferIndex, unify::DataLock & lock ) override;
 		void LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
 		void Unlock( size_t bufferIndex, unify::DataLock & lock ) override;
 		void UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
-		
-		me::render::VertexDeclaration::ptr GetVertexDeclaration() const override;
-		
-		bool Valid() const;
-		void Use() const override;
-
-		unify::BBox< float > & GetBBox() override;
-		const unify::BBox< float > & GetBBox() const override;
 
 		bool Locked( size_t bufferIndex ) const override;
+
 		me::render::BufferUsage::TYPE GetUsage( size_t bufferIndex ) const override;
+
 		size_t GetStride( size_t bufferIndex ) const override;
 		size_t GetLength( size_t bufferIndex ) const override;
 		size_t GetSizeInBytes( size_t bufferIndex ) const override;
 
 	protected:
 		const Renderer * m_renderer;
-		std::vector< ID3D11Buffer * > m_buffers;
 
 		me::render::VertexDeclaration::ptr m_vertexDeclaration;
 
 		unify::BBox< float > m_bbox;
 
+		std::vector< ID3D11Buffer * > m_buffers;
+		
 		mutable std::vector< bool > m_locked;
 		std::vector< me::render::BufferUsage::TYPE > m_usage;
 		std::vector< size_t > m_strides; // Size of each item in the buffer.

@@ -68,7 +68,7 @@ namespace medx11
 	
 		const unsigned int FileHeight() const;
 
-	public: // ITexture
+	public: // me::render::ITexture
 		
 		const unify::Size< unsigned int > & ImageSize() const override;
 
@@ -76,7 +76,7 @@ namespace medx11
 
 		bool GetLockable() const;
 
-		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, bool readonly );
+		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access );
 		
 		void UnlockRect( unsigned int level );
 
@@ -86,7 +86,7 @@ namespace medx11
 
 		const me::render::TextureParameters * GetParameters() const override;
 
-	public: // IResource...
+	public: // rm::IResource...
 
 		bool Reload() override;
 

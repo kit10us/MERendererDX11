@@ -81,7 +81,7 @@ bool Texture::GetLockable() const
 	return m_parameters.lockable;
 }
 
-void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rect< long > * rect, bool readonly )
+void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access )
 {
 	if ( !m_created )
 	{
@@ -95,7 +95,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 		
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	auto result = dxContext->Map( m_texture, 0, readonly ? D3D11_MAP_READ : D3D11_MAP_WRITE_DISCARD, 0, &mappedResource );
+	auto result = dxContext->Map( m_texture, 0, unify::DataLockAccess::WriteAccess( access ) ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_READ, 0, &mappedResource );
 	if ( FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to lock texture!" );
@@ -162,7 +162,7 @@ void Texture::CreateFromSize()
 	textureDesc.Height = height;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.Format = unify::Cast< DXGI_FORMAT >( m_parameters.format );
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -301,6 +301,8 @@ void Texture::LoadImage( unify::Path filePath )
 
 	unsigned int width = m_scratch.GetImage( 0, 0, 0 )->width;
 	unsigned int height = m_scratch.GetImage( 0, 0, 0 )->height;
+
+	m_parameters.format = unify::Cast< me::render::Format::TYPE >( m_scratch.GetImage( 0, 0, 0 )->format );
 
 	D3D11_SUBRESOURCE_DATA data{};
 	data.pSysMem = m_scratch.GetImage( 0, 0, 0 )->pixels;

@@ -4,9 +4,8 @@
 #pragma once
 
 #include <medx11/Renderer.h>
-#include <me/shader/ConstantBuffer.h>
+#include <medx11/ConstantBuffer.h>
 #include <me/render/VertexDeclaration.h>
-#include <unify/Path.h>
 #include <atlbase.h>
 
 namespace medx11
@@ -23,47 +22,29 @@ namespace medx11
 
 		void Create( me::render::VertexShaderParameters parameters );
 
-		const me::shader::ConstantBuffer * GetConstants() const override;
-
-		void LockConstants( size_t buffer, unify::DataLock & lock ) override;	   
-
-		void UnlockConstants( size_t buffer, unify::DataLock & lock ) override;
-
-		void SetVertexDeclaration( me::render::VertexDeclaration::ptr vertexDeclaration );
-
+	public: // me::render::IVertexShader
+		void SetVertexDeclaration( me::render::VertexDeclaration::ptr vertexDeclaration ) override;
 		me::render::VertexDeclaration::ptr GetVertexDeclaration() const override;
 
+	public: // me::render::IShader
+		me::render::IConstantBuffer * GetConstantBuffer() override;
+		const me::render::IConstantBuffer * GetConstantBuffer() const override;
 		const void * GetBytecode() const override;
-
 		size_t GetBytecodeLength() const override;
-
 		void Use() override;
-
-		std::string GetSource() const override;
-
-		bool Reload() override;
-
 		bool IsTrans() const override;
 
-		std::string GetError();
+	public: // rm::IResource
+		bool Reload() override;
+		std::string GetSource() const override;
 
 	protected:	   
+		Renderer * m_renderer;
 		me::render::VertexShaderParameters m_parameters;
 		bool m_assembly;
-		std::string m_errorMessage;
-		bool m_created;
-		
-		me::shader::ConstantBuffer::ptr m_constants;
-
 		me::render::VertexDeclaration::ptr m_vertexDeclaration;
-		Renderer * m_renderer;
-
 		CComPtr< ID3D11VertexShader > m_vertexShader;
 		CComPtr< ID3D10Blob > m_vertexShaderBuffer;
-		//CComPtr< ID3D11ShaderReflection > m_vertexShaderReflection;
-
-		std::vector< ID3D11Buffer * > m_constantBuffers;
-		size_t m_bufferAccessed;
-		size_t m_locked;
+		ConstantBuffer m_constantBuffer;
 	};
 }

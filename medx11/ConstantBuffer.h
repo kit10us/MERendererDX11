@@ -4,47 +4,49 @@
 #pragma once
 
 #include <medx11/Renderer.h>
-#include <me/IVertexBuffer.h>
-#include <unify/BBox.h>
-#include <atlbase.h>
+#include <me/render/ResourceType.h>
+#include <me/render/BufferUsage.h>
 
 namespace medx11
 {
-	struct ConstantBufferParameters
-	{
-	};
-
-	class ConstantBuffer : public me::IBuffer
+	class ConstantBuffer : public me::render::IConstantBuffer
 	{
 	public:
-		ConstantBuffer( const me::IRenderer * renderer );
-		ConstantBuffer( const me::IRenderer * renderer, ConstantBufferParameters parameters );
+		ConstantBuffer( const me::render::IRenderer * renderer );
+		ConstantBuffer( const me::render::IRenderer * renderer, me::render::ConstantBufferParameters parameters );
 		~ConstantBuffer();
 
-		void Create( ConstantBufferParameters parameters );
-		void Destroy();
 
-		void Lock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
-		void Unlock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
-		
-		bool Valid() const;
-		void Use() const override;
+	public: // me::render::IConstantBuffer
+		const me::render::ConstantTable * GetTable() const override;
 
-		bool Locked( size_t bufferIndex ) const override;
-		me::BufferUsage::TYPE GetUsage( size_t bufferIndex ) const override;
-		size_t GetStride( size_t bufferIndex ) const override;
-		size_t GetLength( size_t bufferIndex ) const override;
-		size_t GetSizeInBytes( size_t bufferIndex ) const override;
+		void Create( me::render::ConstantBufferParameters parameters ) override;
+
+		void Destroy() override;
+
+		size_t GetBufferCount() const override;
+
+		void Use( size_t startSlot, size_t startBuffer ) override;
+
+		void LockConstants( size_t bufferIndex, unify::DataLock & lock ) override;
+		void UnlockConstants( size_t buffer, unify::DataLock & lock ) override;
+
+		me::render::ResourceType::TYPE GetType() const override;
+
+		me::render::BufferUsage::TYPE GetUsage() const override;
 
 	protected:
 		const Renderer * m_renderer;
-		std::vector< ID3D11Buffer * > m_buffers;
+		me::render::ConstantBufferParameters m_parameters;
 
-		mutable std::vector< bool > m_locked;
-		std::vector< me::BufferUsage::TYPE > m_usage;
-		std::vector< size_t > m_strides; // Size of each item in the buffer.
-		std::vector< size_t > m_lengths; // Number of items we can store in the buffer.
+		me::render::ConstantTable::ptr m_table;
+
+		std::vector< ID3D11Buffer * > m_buffers;
+		
+		me::render::ResourceType::TYPE m_type;
+		me::render::BufferUsage::TYPE m_usage;
+		
+		size_t m_locked;
+		size_t m_bufferAccessed;
 	};
 }

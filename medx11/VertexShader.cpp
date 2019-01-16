@@ -8,15 +8,12 @@
 
 using namespace medx11;
 using namespace me;
-using namespace shader;
 using namespace render;
 
 VertexShader::VertexShader( IRenderer * renderer )
 	: m_renderer( dynamic_cast< Renderer * >(renderer) )
 	, m_assembly( false )
-	, m_created( false )
-	, m_locked{ 0 }
-	, m_bufferAccessed{ 0 }
+	, m_constantBuffer{ renderer }
 {
 }
 
@@ -33,12 +30,7 @@ VertexShader::~VertexShader()
 
 void VertexShader::Destroy()
 {
-	for( auto && buffer : m_constantBuffers )
-	{
-		buffer->Release();
-	}
-	m_constantBuffers.clear();
-
+	m_constantBuffer.Destroy();
 	m_vertexShader = nullptr;
 	m_vertexShaderBuffer = nullptr;
 }
@@ -48,7 +40,6 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	Destroy();
 
 	m_parameters = parameters;
-	m_constants = parameters.constants;
 	m_vertexDeclaration = parameters.vertexDeclaration;
 
 	bool debug = false;
@@ -77,79 +68,9 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	result = dxDevice->CreateVertexShader( m_vertexShaderBuffer->GetBufferPointer(), m_vertexShaderBuffer->GetBufferSize(), classLinkage, &m_vertexShader );
 	assert( !FAILED( result ) );
 
-	/*
-	result = D3DReflect( m_vertexShaderBuffer->GetBufferPointer(), m_vertexShaderBuffer->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&m_vertexShaderReflection );
-	assert( !FAILED( result ) );
-	*/
-
-	using namespace DirectX;
-
-	if ( m_constants )
-	{
-
-		for( size_t bufferIndex = 0, buffer_count = m_constants->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
-		{
-			D3D11_BUFFER_DESC constantBufferDesc{};
-			constantBufferDesc.ByteWidth = m_constants->GetSizeInBytes( bufferIndex );
-			constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-			constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			ID3D11Buffer * createdBuffer;
-			result = dxDevice->CreateBuffer( &constantBufferDesc, nullptr, &createdBuffer );
-			m_constantBuffers.push_back( createdBuffer );
-			assert( !FAILED( result ) );
-		}
-	}
-		
+	m_parameters.constantBufferParameters.type = render::ResourceType::VertexShader;
+	m_constantBuffer.Create( m_parameters.constantBufferParameters );
 	m_vertexDeclaration->Build( m_renderer, *this );
-	m_created = true;
-}
-
-const ConstantBuffer * VertexShader::GetConstants() const
-{
-	return m_constants.get();
-}
-
-void VertexShader::LockConstants( size_t bufferIndex, unify::DataLock & lock )
-{
-	if ( (m_locked & (1 << bufferIndex)) == (1 << bufferIndex) ) throw exception::FailedToLock( "Failed to lock vertex shader constant buffer!" );
-
-	m_bufferAccessed = m_bufferAccessed | (1 << bufferIndex);
-	m_locked = m_locked | (1 << bufferIndex);
-
-	auto dxDevice = m_renderer->GetDxDevice();
-	auto dxContext = m_renderer->GetDxContext();
-
-	D3D11_MAPPED_SUBRESOURCE subresource{};
-	HRESULT result = dxContext->Map( m_constantBuffers[ bufferIndex ], bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if ( FAILED( result ) )
-	{
-		throw unify::Exception( "Failed to set vertex shader!" );
-	}		
-
-	lock.SetLock( subresource.pData, m_constants->GetSizeInBytes( bufferIndex ), unify::DataLock::ReadWrite, 0 );
-
-	// Roughly handle defaults...
-	for ( auto variable : m_constants->GetVariables( bufferIndex ) )
-	{
-		if ( variable.hasDefault )
-		{
-			lock.CopyBytesFrom( &variable.default[0], variable.offsetInBytes, variable.default.size() * sizeof( float ) );
-		}
-	}
-}
-
-void VertexShader::UnlockConstants( size_t buffer, unify::DataLock & lock )
-{
-	if ( (m_locked & (1 << buffer)) != (1 << buffer) ) throw exception::FailedToLock( "Failed to unlock vertex shader constant buffer (buffer not locked)!" );
-
-	auto dxDevice = m_renderer->GetDxDevice();
-	auto dxContext = m_renderer->GetDxContext();
-
-	dxContext->Unmap( m_constantBuffers[ buffer ], buffer );
-	//dxContext->VSSetConstantBuffers( buffer, 1, &m_constantBuffers[ buffer ].p );
-
-	m_locked = m_locked & ~(1 << buffer);
 }
 
 void VertexShader::SetVertexDeclaration( VertexDeclaration::ptr vertexDeclaration )
@@ -160,6 +81,16 @@ void VertexShader::SetVertexDeclaration( VertexDeclaration::ptr vertexDeclaratio
 VertexDeclaration::ptr VertexShader::GetVertexDeclaration() const
 {
 	return m_vertexDeclaration;
+}
+
+IConstantBuffer * VertexShader::GetConstantBuffer()
+{
+	return &m_constantBuffer;
+}
+
+const IConstantBuffer * VertexShader::GetConstantBuffer() const
+{
+	return GetConstantBuffer();
 }
 
 const void * VertexShader::GetBytecode() const
@@ -174,40 +105,16 @@ size_t VertexShader::GetBytecodeLength() const
 
 void VertexShader::Use()
 {
-	if ( m_locked != 0 ) throw unify::Exception( "Vertex shader is still locked, while attempting to use it!" );
-
-	auto dxDevice = m_renderer->GetDxDevice();
 	auto dxContext = m_renderer->GetDxContext();
 
-	// Ensure all buffers have been accessed (defaults)
-	for ( size_t buffer = 0, size = m_constantBuffers.size(); buffer < size; ++buffer )
-	{
-		if ( !m_constants->HasDefaults( buffer ) ) continue;
-
-		// Access test...
-		if ( (m_bufferAccessed & (1 << buffer)) != (1 << buffer) )
-		{
-			unify::DataLock lock;
-			LockConstants( buffer, lock );
-			UnlockConstants( buffer, lock );
-		}
-		
-	}
-
-	if ( m_constantBuffers.size() > 0 )
-	{
-		dxContext->VSSetConstantBuffers( 0, m_constantBuffers.size(), &m_constantBuffers[0] );
-	}
-	
+	m_constantBuffer.Use( 0, 0 );
 	m_vertexDeclaration->Use();
-
 	dxContext->VSSetShader( m_vertexShader, nullptr, 0 );
-	m_bufferAccessed = 0;
 }
 
-std::string VertexShader::GetSource() const
+bool VertexShader::IsTrans() const
 {
-	return m_parameters.path.ToXPath();
+	return m_parameters.trans;
 }
 
 bool VertexShader::Reload()
@@ -217,12 +124,8 @@ bool VertexShader::Reload()
 	return true;
 }
 
-bool VertexShader::IsTrans() const
+std::string VertexShader::GetSource() const
 {
-	return m_parameters.trans;
+	return m_parameters.path.ToXPath();
 }
 
-std::string VertexShader::GetError()
-{
-	return m_errorMessage;
-}

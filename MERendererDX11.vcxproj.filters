@@ -36,6 +36,12 @@
     <ClInclude Include="medx11\RendererFactory.h">
       <Filter>medx11</Filter>
     </ClInclude>
+    <ClInclude Include="medx11\ConstantBuffer.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
+    <ClInclude Include="medx11\Conversion.h">
+      <Filter>medx11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="medx11\Renderer.cpp">
@@ -63,6 +69,12 @@
       <Filter>medx11</Filter>
     </ClCompile>
     <ClCompile Include="medx11\RendererFactory.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\ConstantBuffer.cpp">
+      <Filter>medx11</Filter>
+    </ClCompile>
+    <ClCompile Include="medx11\Conversion.cpp">
       <Filter>medx11</Filter>
     </ClCompile>
   </ItemGroup>

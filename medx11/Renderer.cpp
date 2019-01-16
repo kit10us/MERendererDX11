@@ -2,6 +2,8 @@
 // All Rights Reserved
 
 #include <medx11/Renderer.h>
+#include <medx11/ShaderResource.h>
+#include <medx11/ConstantBuffer.h>
 #include <medx11/VertexBuffer.h>
 #include <medx11/IndexBuffer.h>
 #include <medx11/VertexShader.h>
@@ -291,7 +293,8 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 	m_dxContext->IASetPrimitiveTopology( topology );
 
 	auto && vertexShader = method.effect->GetVertexShader();
-	auto && constants = vertexShader->GetConstants();
+	auto && constantBuffer = vertexShader->GetConstantBuffer();
+	auto && constantTable = constantBuffer->GetTable();
 
 	size_t write = 0;	  
 
@@ -300,19 +303,19 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 	case Instancing::None:
 		{
 			// With no instancing, we except a world matrix in the constant buffer.
-			auto worldRef = constants->GetWorld();
-			auto world = constants->GetVariable( worldRef );
+			auto worldRef = constantTable->GetWorld();
+			auto world = constantTable->GetVariable( worldRef );
 
-			auto viewRef = constants->GetView();
-			auto projRef = constants->GetProjection();
+			auto viewRef = constantTable->GetView();
+			auto projRef = constantTable->GetProjection();
 
 			unify::DataLock lock;
 
 			while ( ! matrixFeed.Done() )
 			{					 
-				for( size_t bufferIndex = 0, buffer_count = constants->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
+				for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 				{
-					vertexShader->LockConstants( bufferIndex, lock );
+					constantBuffer->LockConstants( bufferIndex, lock );
 
 					if ( bufferIndex == viewRef.buffer )
 					{
@@ -335,7 +338,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 						write += matrixFeed.Consume( &matrix[write], world.count );
 					}
 
-					vertexShader->UnlockConstants( bufferIndex, lock );
+					constantBuffer->UnlockConstants( bufferIndex, lock );
 					bufferIndex++;
 				}
 				 
@@ -367,6 +370,19 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 			// The number of matrices we use per instance.
 			size_t matricesPerInstance = matrixFeed.Stride();
 
+
+			ConstantTable table{};
+			table.AddBuffer( "bones" );
+			table.AddVariable( 0, ConstantVariable( "world", ElementFormat::Matrix4x4, matrixFeed.Stride() * m_totalInstances ) );
+
+			ConstantBufferParameters params {};
+			params.constantTable;
+			params.type = ResourceType::VertexShader;
+			params.usage = BufferUsage::Default;
+			me::render::IConstantBuffer::ptr worldMatrices{ ProduceConstantBuffer( params ) };
+
+			method.effect->Use( this, renderInfo );
+
 			while ( ! matrixFeed.Done() )
 			{
 				result = m_dxContext->Map( m_instanceBufferM[0], 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subResource );
@@ -378,7 +394,6 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 			
 				m_dxContext->Unmap( m_instanceBufferM[0], 0 );
 
-				method.effect->Use( this, renderInfo );
 
 				m_dxContext->IASetVertexBuffers( 1, 1, &m_instanceBufferM[0].p, &bufferStride, &offset );
 
@@ -398,6 +413,91 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 	case Instancing::QP:
 		break;
 	}
+}
+
+void Renderer::RenderInstances( const RenderMethod & method, const RenderInfo & renderInfo, size_t instances )
+{
+	int instancingSlot = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
+	Instancing::TYPE instancing = Instancing::None;
+	if( instancingSlot != -1 )
+	{
+		instancing = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );
+	}
+
+	D3D11_PRIMITIVE_TOPOLOGY topology{};
+	switch( method.primitiveType )
+	{
+	case PrimitiveType::PointList:
+		topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+		break;
+	case PrimitiveType::LineList:
+		topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		break;
+	case PrimitiveType::LineStrip:
+		topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+		break;
+	case PrimitiveType::TriangleList:
+		topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		break;
+	case PrimitiveType::TriangleStrip:
+		topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+		break;
+	}
+	m_dxContext->IASetPrimitiveTopology( topology );
+
+	auto && vertexShader = method.effect->GetVertexShader();
+	auto && constantBuffer = vertexShader->GetConstantBuffer();
+	auto && constantTable = constantBuffer->GetTable();
+
+	auto worldRef = constantTable->GetWorld();
+	auto viewRef = constantTable->GetView();
+	auto projRef = constantTable->GetProjection();
+
+
+	for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
+	{
+		unify::DataLock lock;
+		constantBuffer->LockConstants( bufferIndex, lock );
+
+		if( bufferIndex == viewRef.buffer )
+		{
+			unsigned char * data = (lock.GetData< unsigned char >()) + viewRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+			*matrix = renderInfo.GetViewMatrix();
+		}
+
+		if( bufferIndex == projRef.buffer )
+		{
+			unsigned char * data = (lock.GetData< unsigned char >()) + projRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+			*matrix = renderInfo.GetProjectionMatrix();
+		}
+
+		if( bufferIndex == worldRef.buffer )
+		{
+			unsigned char * data = (lock.GetData< unsigned char >()) + worldRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+		}
+
+		constantBuffer->UnlockConstants( bufferIndex, lock );
+		bufferIndex++;
+	}
+
+	method.effect->Use( this, renderInfo );
+
+	if( method.useIB == false )
+	{
+		m_dxContext->DrawInstanced( method.vertexCount, instances, method.startVertex, 0 );
+	}
+	else
+	{
+		m_dxContext->DrawIndexedInstanced( method.indexCount, instances, method.startIndex, method.baseVertexIndex, 0 );
+	}
+}
+
+IConstantBuffer::ptr Renderer::ProduceConstantBuffer( ConstantBufferParameters parameters )
+{
+	return IConstantBuffer::ptr( new ConstantBuffer( this, parameters ) );
 }
 
 IVertexBuffer::ptr Renderer::ProduceVB( VertexBufferParameters parameters ) 
@@ -457,12 +557,10 @@ void Renderer::UseTextures( std::vector< ITexture::ptr > textures )
 		}
 	}
 
+	if( usesTextures )
 	{
-		if( usesTextures )
-		{
-			auto texture = reinterpret_cast<medx11::Texture*>( textures[0].get() );
-			dxContext->PSSetSamplers( 0, 1, &texture->m_colorMapSampler.p );
-			dxContext->PSSetShaderResources( 0, textures.size(), views );
-		}
+		auto texture = reinterpret_cast<medx11::Texture*>( textures[0].get() );
+		dxContext->PSSetSamplers( 0, 1, &texture->m_colorMapSampler.p );
+		dxContext->PSSetShaderResources( 0, textures.size(), views );
 	}
 }

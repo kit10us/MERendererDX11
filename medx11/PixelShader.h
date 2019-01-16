@@ -4,8 +4,7 @@
 #pragma once
 
 #include <medx11/Renderer.h>
-#include <unify/Path.h>
-#include <memory>
+#include <medx11/ConstantBuffer.h>
 #include <atlbase.h>
 
 namespace medx11
@@ -22,39 +21,28 @@ namespace medx11
 
 		void Create( me::render::PixelShaderParameters parameters );
 
-		const me::shader::ConstantBuffer * GetConstants() const override;
+	public: // me::render::IPixelShader
+		me::render::BlendDesc GetBlendDesc() const override;
 
-		void LockConstants( size_t buffer, unify::DataLock & lock ) override;	   
-
-		void UnlockConstants( size_t buffer, unify::DataLock & lock ) override;
-
+	public: // me::render::IShader
+		me::render::IConstantBuffer * GetConstantBuffer() override;
+		const me::render::IConstantBuffer * GetConstantBuffer() const override;
+		const void * GetBytecode() const override;
+		size_t GetBytecodeLength() const override;
 		void Use() override;
-
-		std::string GetSource() const override;
-
-		bool Reload() override;
-
 		bool IsTrans() const;
 
-		std::string GetError();
+	public: // rm::IResource
+		bool Reload() override;
+		std::string GetSource() const override;
 
 	protected:
-		me::render::PixelShaderParameters m_parameters;
-		std::string m_errorMessage;
-		bool m_created;
-
-		bool m_isTrans;	// Does this pixel shader turn the render into transparent (in part or entire)
-
 		Renderer * m_renderer;
+		me::render::PixelShaderParameters m_parameters;
 		CComPtr< ID3D11PixelShader > m_pixelShader;
 		CComPtr< ID3D10Blob > m_pixelShaderBuffer;
-
-		me::shader::ConstantBuffer::ptr m_constants;
-		std::vector< ID3D11Buffer * > m_constantBuffers;
-		size_t m_bufferAccessed;
-		size_t m_locked;
-
 		CComPtr< ID3D11BlendState > m_blendState;
 		D3D11_BLEND_DESC m_blendDesc;
+		ConstantBuffer m_constantBuffer;
 	};
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2002 - 2018, Evil Quail LLC
 // All Rights Reserved
 
-#include <medx11/VertexBuffer.h>
+#include <medx11/DataBuffer.h>
 #include <me/exception/FailedToCreate.h>
 #include <me/exception/FailedToLock.h>
 #include <me/exception/NotImplemented.h>
@@ -11,31 +11,28 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-VertexBuffer::VertexBuffer( IRenderer * renderer )
+DataBuffer::DataBuffer( IRenderer * renderer )
 	: m_renderer( dynamic_cast< Renderer * >(renderer) )
 	, m_usage( BufferUsage::Default )
+	// TODO: , m_shaderResourceView{}
 {
 }
 
-VertexBuffer::VertexBuffer( IRenderer * renderer, VertexBufferParameters parameters )
-	: VertexBuffer( renderer )
+DataBuffer::DataBuffer( IRenderer * renderer, DataBufferParameters parameters )
+	: DataBuffer( renderer )
 {
 	Create( parameters );
 }
 
 
-VertexBuffer::~VertexBuffer()
+DataBuffer::~DataBuffer()
 {
 	Destroy();
 }
 
-void VertexBuffer::Create( VertexBufferParameters parameters )
+void DataBuffer::Create( DataBufferParameters parameters )
 {
 	Destroy();
-
-	m_bbox = parameters.bbox;
-
-	auto vd = parameters.vertexDeclaration;
 
 	bool gaps = false; // We do not support gaps in buffers.
 	for( size_t slot = 0; slot < vd->NumberOfSlots(); slot++ )
@@ -66,20 +63,16 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 		}
 
 		BufferUsage::TYPE usage = parameters.usage;
-		if ( vd->GetInstancing( slot ) != Instancing::None )
-		{
-			usage = BufferUsage::Dynamic;
-		}
+		usage = BufferUsage::Dynamic;
 
 		m_usage.push_back( usage );
-		m_vertexDeclaration = vd;
-		m_strides.push_back( m_vertexDeclaration->GetSizeInBytes( slot ) );
+		m_strides.push_back( parameters.stride );
 		m_lengths.push_back( count );
 
 		// Ensure we have some sort of idea what we need to be...
 		if ( GetSizeInBytes( slot ) == 0 )
 		{
-			throw exception::FailedToCreate( "Not a valid vertex buffer size!" );
+			throw exception::FailedToCreate( "Not a valid data buffer size!" );
 		}
 
 		auto dxDevice = m_renderer->GetDxDevice();
@@ -87,7 +80,7 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 		// Ensure that if we are BufferUsage::Immutable, then source is not null.
 		if ( usage == BufferUsage::Immutable && source == nullptr )
 		{
-			throw exception::FailedToCreate( "Vertex buffer is immutable, yet source is null!" );
+			throw exception::FailedToCreate( "Data buffer is immutable, yet source is null!" );
 		}
 
 		D3D11_USAGE usageDX{};
@@ -109,75 +102,69 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 			break;
 		}
 
-		D3D11_BUFFER_DESC vertexBufferDesc{};
-		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vertexBufferDesc.ByteWidth = parameters.vertexDeclaration->GetSizeInBytes( slot ) * count;
-		vertexBufferDesc.Usage = usageDX;
-		vertexBufferDesc.CPUAccessFlags = CPUAccessFlags;
+		D3D11_BUFFER_DESC DataBufferDesc{};
+		DataBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		DataBufferDesc.ByteWidth = parameters.stride;
+		DataBufferDesc.Usage = usageDX;
+		DataBufferDesc.CPUAccessFlags = CPUAccessFlags;
 
+		HRESULT result;
+		ID3D11Buffer * buffer;
+		if ( source != nullptr )
 		{
-			HRESULT result;
-			ID3D11Buffer * buffer;
-			if ( source != nullptr )
-			{
-				D3D11_SUBRESOURCE_DATA initialData{};
-				initialData.pSysMem = source;
-				result = dxDevice->CreateBuffer( &vertexBufferDesc, &initialData, &buffer );
-			}
-			else
-			{
-				result = dxDevice->CreateBuffer( &vertexBufferDesc, nullptr, &buffer );
-			}
-			OnFailedThrow( result, "Failed to create vertex buffer!" );
-			m_buffers.push_back( buffer );
+			D3D11_SUBRESOURCE_DATA initialData{};
+			initialData.pSysMem = source;
+			result = dxDevice->CreateBuffer( &DataBufferDesc, &initialData, &buffer );
 		}
+		else
+		{
+			result = dxDevice->CreateBuffer( &DataBufferDesc, nullptr, &buffer );
+		}
+		OnFailedThrow( result, "Failed to create vertex buffer!" );
+		m_buffers.push_back( buffer );
 	}
 }
 
-VertexDeclaration::ptr VertexBuffer::GetVertexDeclaration() const
+void DataBuffer::Destroy()
 {
-	return m_vertexDeclaration;
-}
-
-unify::BBox< float > & VertexBuffer::GetBBox()
-{
-	return m_bbox;
-}
-
-const unify::BBox< float > & VertexBuffer::GetBBox() const
-{
-	return m_bbox;
-}
-
-bool VertexBuffer::Valid() const
-{
-	return m_buffers.size() == m_strides.size();
-}
-
-void VertexBuffer::Destroy()
-{
-	for ( auto && buffer : m_buffers )
-	{
-		buffer->Release();
-	}
-	m_buffers.clear();
+	m_buffers.Clear();
 	m_lengths.clear();
 	m_strides.clear();
 }
 
-size_t VertexBuffer::GetBufferCount() const
-{
-	return m_buffers.size();
-}
-
-void VertexBuffer::Use( size_t startBuffer, size_t startSlot ) const
+void DataBuffer::Use( ConstantBufferUse bufferUse ) const
 {
 	auto dxContext = m_renderer->GetDxContext();
-	std::vector< unsigned int > offsetInBytes( m_strides.size(), 0 );
-	dxContext->IASetVertexBuffers( 0, m_buffers.size(), &m_buffers[0], &m_strides[0], &offsetInBytes[0] );
+
+	switch( bufferUse )
+	{
+		case ConstantBufferUse::PixelShader:
+		dxContext->PSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+
+		case ConstantBufferUse::VertexShader:
+		dxContext->VSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+
+		case ConstantBufferUse::ComputeShader:
+		dxContext->CSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+		
+		case ConstantBufferUse::DomainShader:
+		dxContext->DSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+
+		case ConstantBufferUse::GeometryShader:
+		dxContext->GSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+
+		case ConstantBufferUse::HullShader:
+		dxContext->HSSetConstantBuffers( 0, m_buffers.Size(), m_buffers.GetBuffers() );
+		break;
+	}
 }
 
-void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
+void DataBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer index out of range)!" );
 	if ( m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer already locked)!" );
@@ -190,11 +177,11 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::ReadWrite, 0 );
 	m_locked[bufferIndex] = true;
 }
 
-void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void DataBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer index out of range)!" );
 	if ( m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer already locked)!" );
@@ -207,11 +194,11 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::Readonly, 0 );
 	m_locked[bufferIndex] = true;
 }
 
-void VertexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
+void DataBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer index out of range)!" );
 	if ( ! m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer not locked)!" );
@@ -224,7 +211,7 @@ void VertexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 	m_locked[bufferIndex] = false;
 }
 
-void VertexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void DataBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer index out of range)!" );
 	if ( ! m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer not locked)!" );
@@ -237,27 +224,32 @@ void VertexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) 
 	m_locked[bufferIndex] = false;
 }
 
-bool VertexBuffer::Locked( size_t bufferIndex ) const
+bool DataBuffer::Valid() const
+{
+	return m_buffers.size() == m_strides.size();
+}
+
+bool DataBuffer::Locked( size_t bufferIndex ) const
 {
 	return m_locked[ bufferIndex ];
 }
 
-BufferUsage::TYPE VertexBuffer::GetUsage( size_t bufferIndex ) const
+BufferUsage::TYPE DataBuffer::GetUsage( size_t bufferIndex ) const
 {
 	return m_usage[ bufferIndex ];
 }
 
-size_t VertexBuffer::GetStride( size_t bufferIndex ) const
+size_t DataBuffer::GetStride( size_t bufferIndex ) const
 {
 	return m_strides[ bufferIndex ];
 }
 
-size_t VertexBuffer::GetLength( size_t bufferIndex ) const
+size_t DataBuffer::GetLength( size_t bufferIndex ) const
 {
 	return m_lengths[ bufferIndex ];
 }
 
-size_t VertexBuffer::GetSizeInBytes( size_t bufferIndex ) const
+size_t DataBuffer::GetSizeInBytes( size_t bufferIndex ) const
 {
 	return m_strides[ bufferIndex ] * m_lengths[ bufferIndex ];
 }

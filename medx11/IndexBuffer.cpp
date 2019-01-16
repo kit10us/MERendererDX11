@@ -164,6 +164,11 @@ void IndexBuffer::Destroy()
 	m_length = 0;
 }
 
+size_t IndexBuffer::GetBufferCount() const
+{
+	return m_buffer ? 1 : 0;
+}
+
 void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 {
 	if ( ! m_buffer ) throw exception::FailedToLock( "Failed to lock index buffer buffer (buffer not created)!" );
@@ -177,7 +182,7 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::ReadWrite, 0 );
 	m_locked = true;
 }
 
@@ -194,7 +199,7 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLock::Readonly, 0 );
+	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::Readonly, 0 );
 	m_locked = true;
 }
 
@@ -229,15 +234,18 @@ bool IndexBuffer::Valid() const
 	return m_buffer != 0;
 }
 
-void IndexBuffer::Use() const
+void IndexBuffer::Use( size_t startBuffer, size_t startSlot ) const
 {
+	assert( ! startBuffer && ! startSlot );
+
+	auto dxContext = m_renderer->GetDxContext();
 	if ( !m_buffer )
 	{
 		return;
 	}
 
 	// Set the buffer.
-	m_renderer->GetDxContext()->IASetIndexBuffer( m_buffer, DXGI_FORMAT_R32_UINT, 0 );
+	dxContext->IASetIndexBuffer( m_buffer, DXGI_FORMAT_R32_UINT, 0 );
 }
 
 bool IndexBuffer::Locked( size_t bufferIndex ) const
