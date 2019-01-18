@@ -11,14 +11,6 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-ConstantBuffer::ConstantBuffer( const me::render::IRenderer * renderer )
-	: m_renderer{ dynamic_cast< const Renderer * >( renderer ) }
-	, m_parameters{ }
-	, m_locked{ }
-	, m_bufferAccessed{ }
-{
-}
-
 ConstantBuffer::ConstantBuffer( const me::render::IRenderer * renderer, me::render::ConstantBufferParameters parameters )
 	: m_renderer{ dynamic_cast< const Renderer * >(renderer ) }
 	, m_parameters{ parameters }
@@ -26,18 +18,20 @@ ConstantBuffer::ConstantBuffer( const me::render::IRenderer * renderer, me::rend
 	Create( parameters );
 }
 
-
 ConstantBuffer::~ConstantBuffer()
 {
 	Destroy();
 }
 
-
 const me::render::ConstantTable * ConstantBuffer::GetTable() const
 {
-	return m_table.get();
+	return &m_table;
 }
 
+me::render::ConstantBufferParameters ConstantBuffer::GetParameters() const
+{
+	return m_parameters;
+}
 
 void ConstantBuffer::Create( ConstantBufferParameters parameters )
 {
@@ -47,22 +41,19 @@ void ConstantBuffer::Create( ConstantBufferParameters parameters )
 	m_parameters = parameters;
 	m_table = parameters.constantTable;
 
-	if( m_table )
-	{
-		auto dxDevice = m_renderer->GetDxDevice();
+	auto dxDevice = m_renderer->GetDxDevice();
 
-		for( size_t bufferIndex = 0, buffer_count = m_table->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
-		{
-			D3D11_BUFFER_DESC constantBufferDesc{};
-			constantBufferDesc.ByteWidth = m_table->GetSizeInBytes( bufferIndex );
-			constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-			constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			ID3D11Buffer * createdBuffer;
-			HRESULT result = dxDevice->CreateBuffer( &constantBufferDesc, nullptr, &createdBuffer );
-			m_buffers.push_back( createdBuffer );
-			assert( !FAILED( result ) );
-		}
+	for( size_t bufferIndex = 0, buffer_count = m_table.BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
+	{
+		D3D11_BUFFER_DESC constantBufferDesc{};
+		constantBufferDesc.ByteWidth = m_table.GetSizeInBytes( bufferIndex );
+		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		ID3D11Buffer * createdBuffer;
+		HRESULT result = dxDevice->CreateBuffer( &constantBufferDesc, nullptr, &createdBuffer );
+		m_buffers.push_back( createdBuffer );
+		assert( !FAILED( result ) );
 	}
 }
 
@@ -73,7 +64,6 @@ void ConstantBuffer::Destroy()
 		buffer->Release();
 	}
 	m_buffers.clear();
-	m_table.reset();
 	m_locked = {};
 	m_bufferAccessed = {};
 }
@@ -93,7 +83,7 @@ void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 	// Ensure all buffers have been accessed (defaults)
 	for( size_t buffer = 0, size = m_buffers.size(); buffer < size; ++buffer )
 	{
-		if( !m_table->HasDefaults( buffer ) ) continue;
+		if( !m_table.HasDefaults( buffer ) ) continue;
 
 		// Access test...
 		if( ( m_bufferAccessed & (1 << buffer) ) != (1 << buffer) )
@@ -159,10 +149,10 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to lock " + me::render::ResourceType::ToString( m_parameters.type ) + " constant buffer!" );
 	}
 
-	lock.SetLock( subresource.pData, m_table->GetSizeInBytes( bufferIndex ), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, m_table.GetSizeInBytes( bufferIndex ), unify::DataLockAccess::ReadWrite, 0 );
 
 	// Roughly handle defaults...
-	for( auto variable : m_table->GetVariables( bufferIndex ) )
+	for( auto variable : m_table.GetVariables( bufferIndex ) )
 	{
 		if( variable.hasDefault )
 		{

@@ -12,7 +12,6 @@ namespace medx11
 	class PixelShader : public me::render::IPixelShader
 	{
 	public:
-		PixelShader( me::render::IRenderer * renderer );
 		PixelShader( me::render::IRenderer * renderer, me::render::PixelShaderParameters parameters );
 
 		~PixelShader();
@@ -25,6 +24,7 @@ namespace medx11
 		me::render::BlendDesc GetBlendDesc() const override;
 
 	public: // me::render::IShader
+		me::render::IConstantBuffer::ptr CreateConstantBuffer( me::render::BufferUsage::TYPE usage ) const override;
 		me::render::IConstantBuffer * GetConstantBuffer() override;
 		const me::render::IConstantBuffer * GetConstantBuffer() const override;
 		const void * GetBytecode() const override;
@@ -43,6 +43,6 @@ namespace medx11
 		CComPtr< ID3D10Blob > m_pixelShaderBuffer;
 		CComPtr< ID3D11BlendState > m_blendState;
 		D3D11_BLEND_DESC m_blendDesc;
-		ConstantBuffer m_constantBuffer;
+		ConstantBuffer::ptr m_constantBuffer;
 	};
 }

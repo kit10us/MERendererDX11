@@ -20,12 +20,9 @@ namespace medx11
 
 	public: // me::render::IVertexBuffer
 		void Create( me::render::VertexBufferParameters parameters ) override;
-
 		me::render::VertexDeclaration::ptr GetVertexDeclaration() const override;
-
 		unify::BBox< float > & GetBBox() override;
 		const unify::BBox< float > & GetBBox() const override;
-
 		bool Valid() const;
 
 	public: // me::render::IBuffer

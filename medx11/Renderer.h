@@ -40,10 +40,9 @@ namespace medx11
 
 		void* GetHandle() const override;
 
-		void Render( const me::render::RenderMethod & method, const me::render::RenderInfo & renderInfo, me::render::MatrixFeed & matrixFeed ) override;
+		void Render( const me::render::RenderMethod & method, const me::render::RenderInfo & renderInfo, me::render::MatrixFeed & matrixFeed, me::render::IConstantBuffer * constantBuffer ) override;
 		void RenderInstances( const me::render::RenderMethod & method, const me::render::RenderInfo & renderInfo, size_t instances ) override;
 
-		me::render::IConstantBuffer::ptr ProduceConstantBuffer( me::render::ConstantBufferParameters parameters ) override;
 		me::render::IVertexBuffer::ptr ProduceVB( me::render::VertexBufferParameters parameters ) override;
 		me::render::IIndexBuffer::ptr ProduceIB( me::render::IndexBufferParameters parameters ) override;
 		me::render::IVertexShader::ptr ProduceVS( me::render::VertexShaderParameters parameters ) override;

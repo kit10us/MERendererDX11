@@ -317,7 +317,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureDesc.Format = m_scratch.GetImage( 0, 0, 0 )->format;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.Usage = D3D11_USAGE_DYNAMIC;
+	textureDesc.Usage = unify::Cast< D3D11_USAGE >( m_parameters.usage );
 	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	textureDesc.MiscFlags = 0;

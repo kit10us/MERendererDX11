@@ -262,7 +262,7 @@ void* Renderer::GetHandle() const
 	return (HWND)m_display.GetHandle();
 }
  
-void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInfo, MatrixFeed & matrixFeed )
+void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInfo, MatrixFeed & matrixFeed, me::render::IConstantBuffer * constantBufferIn )
 {
 	int instancingSlot = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
 	Instancing::TYPE instancing = Instancing::None;
@@ -291,6 +291,8 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 		break;
 	}
 	m_dxContext->IASetPrimitiveTopology( topology );
+
+	//auto constantBuffer = ProduceConstantBuffer( constantBufferIn->GetParameters() );
 
 	auto && vertexShader = method.effect->GetVertexShader();
 	auto && constantBuffer = vertexShader->GetConstantBuffer();
@@ -343,6 +345,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 				}
 				 
 				method.effect->Use( this, renderInfo );
+				//constantBuffer->Use( 0, 0 );
 
 				if( method.useIB == false )
 				{
@@ -370,7 +373,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 			// The number of matrices we use per instance.
 			size_t matricesPerInstance = matrixFeed.Stride();
 
-
+			/*
 			ConstantTable table{};
 			table.AddBuffer( "bones" );
 			table.AddVariable( 0, ConstantVariable( "world", ElementFormat::Matrix4x4, matrixFeed.Stride() * m_totalInstances ) );
@@ -380,6 +383,7 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 			params.type = ResourceType::VertexShader;
 			params.usage = BufferUsage::Default;
 			me::render::IConstantBuffer::ptr worldMatrices{ ProduceConstantBuffer( params ) };
+			*/
 
 			method.effect->Use( this, renderInfo );
 
@@ -493,11 +497,6 @@ void Renderer::RenderInstances( const RenderMethod & method, const RenderInfo & 
 	{
 		m_dxContext->DrawIndexedInstanced( method.indexCount, instances, method.startIndex, method.baseVertexIndex, 0 );
 	}
-}
-
-IConstantBuffer::ptr Renderer::ProduceConstantBuffer( ConstantBufferParameters parameters )
-{
-	return IConstantBuffer::ptr( new ConstantBuffer( this, parameters ) );
 }
 
 IVertexBuffer::ptr Renderer::ProduceVB( VertexBufferParameters parameters ) 

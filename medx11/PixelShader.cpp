@@ -11,15 +11,10 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-PixelShader::PixelShader( IRenderer * renderer )
-	: m_renderer( dynamic_cast< Renderer * >(renderer) )
-	, m_blendDesc{}
-	, m_constantBuffer{ renderer }
-{
-}
-
 PixelShader::PixelShader( IRenderer * renderer, PixelShaderParameters parameters )
-	: PixelShader( renderer )
+	: m_renderer{ dynamic_cast< Renderer *  >(renderer) }
+	, m_parameters{ parameters }
+	, m_blendDesc{}
 {
 	Create( parameters );
 }
@@ -31,7 +26,7 @@ PixelShader::~PixelShader()
 
 void PixelShader::Destroy()
 {
-	m_constantBuffer.Destroy();
+	m_constantBuffer.reset();
 	m_pixelShader = nullptr;
 	m_pixelShaderBuffer = nullptr;
 }
@@ -104,12 +99,12 @@ void PixelShader::Create( PixelShaderParameters parameters )
 
 		if( FAILED( hr ) )
 		{
-			throw exception::FailedToCreate( "Pixel Shader failed to create blending state!" );
+			throw exception::FailedToCreate( "Failed to create pixel shader \"" + m_parameters.path.ToString() + "\" blending state!" );
 		}
 	}
 
-	m_parameters.constantBufferParameters.type = render::ResourceType::PixelShader;
-	m_constantBuffer.Create( m_parameters.constantBufferParameters );
+	m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
+
 }
 
 me::render::BlendDesc PixelShader::GetBlendDesc() const
@@ -117,9 +112,15 @@ me::render::BlendDesc PixelShader::GetBlendDesc() const
 	return m_parameters.blendDesc;
 }
 
+me::render::IConstantBuffer::ptr PixelShader::CreateConstantBuffer( BufferUsage::TYPE usage ) const
+{
+	ConstantBuffer::ptr constantBuffer{ new ConstantBuffer( m_renderer, ConstantBufferParameters{ me::render::ResourceType::PixelShader, usage, m_parameters.constantTable } ) };
+	return constantBuffer;
+}
+
 IConstantBuffer * PixelShader::GetConstantBuffer()
 {
-	return &m_constantBuffer;
+	return m_constantBuffer.get();
 }
 
 const IConstantBuffer * PixelShader::GetConstantBuffer() const
@@ -142,7 +143,7 @@ void PixelShader::Use()
 	auto dxContext = m_renderer->GetDxContext();
 	dxContext->PSSetShader( m_pixelShader, nullptr, 0 );
 
-	m_constantBuffer.Use( 0, 0 );
+	m_constantBuffer->Use( 0, 0 );
 
 	// Blending...
 	if( m_blendState )
@@ -170,7 +171,6 @@ bool PixelShader::Reload()
 	Create( m_parameters );
 	return true;
 }
-
 
 std::string PixelShader::GetSource() const
 {

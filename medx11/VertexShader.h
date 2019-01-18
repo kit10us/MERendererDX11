@@ -13,7 +13,6 @@ namespace medx11
 	class VertexShader : public me::render::IVertexShader
 	{
 	public:
-		VertexShader( me::render::IRenderer * renderer );
 		VertexShader( me::render::IRenderer * renderer, me::render::VertexShaderParameters parameters );
 
 		~VertexShader();
@@ -27,6 +26,7 @@ namespace medx11
 		me::render::VertexDeclaration::ptr GetVertexDeclaration() const override;
 
 	public: // me::render::IShader
+		me::render::IConstantBuffer::ptr CreateConstantBuffer( me::render::BufferUsage::TYPE usage ) const override;
 		me::render::IConstantBuffer * GetConstantBuffer() override;
 		const me::render::IConstantBuffer * GetConstantBuffer() const override;
 		const void * GetBytecode() const override;
@@ -45,6 +45,6 @@ namespace medx11
 		me::render::VertexDeclaration::ptr m_vertexDeclaration;
 		CComPtr< ID3D11VertexShader > m_vertexShader;
 		CComPtr< ID3D10Blob > m_vertexShaderBuffer;
-		ConstantBuffer m_constantBuffer;
+		ConstantBuffer::ptr m_constantBuffer;
 	};
 }

@@ -12,12 +12,12 @@ namespace medx11
 	class ConstantBuffer : public me::render::IConstantBuffer
 	{
 	public:
-		ConstantBuffer( const me::render::IRenderer * renderer );
 		ConstantBuffer( const me::render::IRenderer * renderer, me::render::ConstantBufferParameters parameters );
 		~ConstantBuffer();
 
-
 	public: // me::render::IConstantBuffer
+		me::render::ConstantBufferParameters GetParameters() const override;
+
 		const me::render::ConstantTable * GetTable() const override;
 
 		void Create( me::render::ConstantBufferParameters parameters ) override;
@@ -39,7 +39,7 @@ namespace medx11
 		const Renderer * m_renderer;
 		me::render::ConstantBufferParameters m_parameters;
 
-		me::render::ConstantTable::ptr m_table;
+		me::render::ConstantTable m_table;
 
 		std::vector< ID3D11Buffer * > m_buffers;
 		

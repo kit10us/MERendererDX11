@@ -10,15 +10,9 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-VertexShader::VertexShader( IRenderer * renderer )
-	: m_renderer( dynamic_cast< Renderer * >(renderer) )
-	, m_assembly( false )
-	, m_constantBuffer{ renderer }
-{
-}
-
 VertexShader::VertexShader( IRenderer * renderer, VertexShaderParameters parameters )
-	: VertexShader( renderer )
+	: m_renderer{ dynamic_cast< Renderer *  >(renderer) }
+	, m_parameters{ parameters }
 {
 	Create( parameters );
 }
@@ -30,7 +24,7 @@ VertexShader::~VertexShader()
 
 void VertexShader::Destroy()
 {
-	m_constantBuffer.Destroy();
+	m_constantBuffer.reset();
 	m_vertexShader = nullptr;
 	m_vertexShaderBuffer = nullptr;
 }
@@ -68,9 +62,8 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	result = dxDevice->CreateVertexShader( m_vertexShaderBuffer->GetBufferPointer(), m_vertexShaderBuffer->GetBufferSize(), classLinkage, &m_vertexShader );
 	assert( !FAILED( result ) );
 
-	m_parameters.constantBufferParameters.type = render::ResourceType::VertexShader;
-	m_constantBuffer.Create( m_parameters.constantBufferParameters );
 	m_vertexDeclaration->Build( m_renderer, *this );
+	m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
 }
 
 void VertexShader::SetVertexDeclaration( VertexDeclaration::ptr vertexDeclaration )
@@ -83,9 +76,15 @@ VertexDeclaration::ptr VertexShader::GetVertexDeclaration() const
 	return m_vertexDeclaration;
 }
 
+IConstantBuffer::ptr VertexShader::CreateConstantBuffer( BufferUsage::TYPE usage ) const
+{
+	ConstantBuffer::ptr constantBuffer{ new ConstantBuffer( m_renderer, ConstantBufferParameters{ me::render::ResourceType::VertexShader, usage, m_parameters.constantTable } ) };
+	return constantBuffer;
+}
+
 IConstantBuffer * VertexShader::GetConstantBuffer()
 {
-	return &m_constantBuffer;
+	return m_constantBuffer.get();
 }
 
 const IConstantBuffer * VertexShader::GetConstantBuffer() const
@@ -107,7 +106,7 @@ void VertexShader::Use()
 {
 	auto dxContext = m_renderer->GetDxContext();
 
-	m_constantBuffer.Use( 0, 0 );
+	m_constantBuffer->Use( 0, 0 );
 	m_vertexDeclaration->Use();
 	dxContext->VSSetShader( m_vertexShader, nullptr, 0 );
 }
