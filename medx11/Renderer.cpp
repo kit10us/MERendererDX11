@@ -268,7 +268,7 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 	Instancing::TYPE instancing = Instancing::None;
 	if ( instancingSlot != -1 )
 	{
-		instancing = effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );	
+		instancing = effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );
 	}
 
 	D3D11_PRIMITIVE_TOPOLOGY topology{};
@@ -300,23 +300,22 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 
 	size_t write = 0;	  
 
-	switch( instancing )
+	while( !matrixFeed.Done() )
 	{
-	case Instancing::None:
+		switch( instancing )
 		{
-			// With no instancing, we except a world matrix in the constant buffer.
-			auto worldRef = constantTable->GetWorld();
-			auto world = constantTable->GetVariable( worldRef );
+		case Instancing::None:
+			{
+				// With no instancing, we expect a world matrix in the constant buffer.
+				auto worldRef = constantTable->GetWorld();
+				auto world = constantTable->GetVariable( worldRef );
 
-			auto viewRef = constantTable->GetView();
-			auto projRef = constantTable->GetProjection();
+				auto viewRef = constantTable->GetView();
+				auto projRef = constantTable->GetProjection();
 
-			unify::DataLock lock;
-
-			while ( ! matrixFeed.Done() )
-			{					 
 				for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 				{
+					unify::DataLock lock;
 					constantBuffer->LockConstants( bufferIndex, lock );
 
 					if ( bufferIndex == viewRef.buffer )
@@ -343,53 +342,23 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 					constantBuffer->UnlockConstants( bufferIndex, lock );
 					bufferIndex++;
 				}
-				 
-				method.effect->Use( this, renderInfo );
-				//constantBuffer->Use( 0, 0 );
-
-				if( method.useIB == false )
-				{
-					m_dxContext->DrawInstanced( method.vertexCount, write, method.startVertex, 0 );
-				}
-				else
-				{
-					m_dxContext->DrawIndexedInstanced( method.indexCount, write, method.startIndex, method.baseVertexIndex, 0 );
-				}
-				write = 0;
+				constantBuffer->Use( 0, 0 );
 			}
-		}
-		break;
-	case Instancing::Matrix:	
-		{
-			HRESULT result = S_OK;
-			size_t bufferStride = sizeof( unify::Matrix );
-			size_t offset = 0;
+			break;
 
-			method.effect->UpdateData( renderInfo, nullptr, 0 );
-
-			unify::DataLock lock;
-			D3D11_MAPPED_SUBRESOURCE subResource{};
-
-			// The number of matrices we use per instance.
-			size_t matricesPerInstance = matrixFeed.Stride();
-
-			/*
-			ConstantTable table{};
-			table.AddBuffer( "bones" );
-			table.AddVariable( 0, ConstantVariable( "world", ElementFormat::Matrix4x4, matrixFeed.Stride() * m_totalInstances ) );
-
-			ConstantBufferParameters params {};
-			params.constantTable;
-			params.type = ResourceType::VertexShader;
-			params.usage = BufferUsage::Default;
-			me::render::IConstantBuffer::ptr worldMatrices{ ProduceConstantBuffer( params ) };
-			*/
-
-			method.effect->Use( this, renderInfo );
-
-			while ( ! matrixFeed.Done() )
+		case Instancing::Matrix:	
 			{
-				result = m_dxContext->Map( m_instanceBufferM[0], 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subResource );
+				constantBuffer->Update( renderInfo, nullptr, 0 );
+
+				const size_t bufferStride = sizeof( unify::Matrix );
+				const size_t offset = 0;
+
+				// The number of matrices we use per instance.
+				const size_t matricesPerInstance = matrixFeed.Stride();
+
+				D3D11_MAPPED_SUBRESOURCE subResource{};
+
+				HRESULT result = m_dxContext->Map( m_instanceBufferM[0], 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subResource );
 				assert( !FAILED( result ) );
 
 				write += matrixFeed.Consume( &((unify::Matrix*)subResource.pData)[write], m_totalInstances );
@@ -398,24 +367,23 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 			
 				m_dxContext->Unmap( m_instanceBufferM[0], 0 );
 
-
 				m_dxContext->IASetVertexBuffers( 1, 1, &m_instanceBufferM[0].p, &bufferStride, &offset );
-
-				if ( method.useIB == false )
-				{
-					m_dxContext->DrawInstanced( method.vertexCount, instanceCount, method.startVertex, 0 );
-				}
-				else
-				{
-					m_dxContext->DrawIndexedInstanced( method.indexCount, instanceCount, method.startIndex, method.baseVertexIndex, 0 );
-				}
-				write = 0;
 			}
+			break;
+
+		case Instancing::QP:
+			break;
 		}
 
-		break;
-	case Instancing::QP:
-		break;
+		if( method.useIB == false )
+		{
+			m_dxContext->DrawInstanced( method.vertexCount, write, method.startVertex, 0 );
+		}
+		else
+		{
+			m_dxContext->DrawIndexedInstanced( method.indexCount, write, method.startIndex, method.baseVertexIndex, 0 );
+		}
+		write = 0;
 	}
 }
 
