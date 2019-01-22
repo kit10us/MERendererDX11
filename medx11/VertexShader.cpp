@@ -105,8 +105,7 @@ size_t VertexShader::GetBytecodeLength() const
 void VertexShader::Use()
 {
 	auto dxContext = m_renderer->GetDxContext();
-
-	m_constantBuffer->Use( 0, 0 );
+	
 	m_vertexDeclaration->Use();
 	dxContext->VSSetShader( m_vertexShader, nullptr, 0 );
 }
