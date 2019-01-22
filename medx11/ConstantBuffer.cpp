@@ -73,6 +73,48 @@ size_t ConstantBuffer::GetBufferCount() const
 	return m_buffers.size();
 }
 
+void ConstantBuffer::Update( const RenderInfo & renderInfo, const unify::Matrix * world, size_t world_size )
+{
+	unify::DataLock lock;
+
+	auto worldRef = m_table.GetWorld();
+	auto viewRef = m_table.GetView();
+	auto projRef = m_table.GetProjection();
+
+	size_t bufferIndex = 0;
+	for( size_t bufferIndex = 0, buffer_count = m_table.BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
+	{
+		unify::DataLock lock;
+		LockConstants( bufferIndex, lock );
+
+		// Set automatic variables...
+
+		if( bufferIndex == viewRef.buffer )
+		{
+			unsigned char * data = (lock.GetData<unsigned char>()) + viewRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+			*matrix = renderInfo.GetViewMatrix();
+		}
+
+		if( bufferIndex == projRef.buffer )
+		{
+			unsigned char * data = (lock.GetData<unsigned char>()) + projRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+			*matrix = renderInfo.GetProjectionMatrix();
+		}
+
+		if( world_size != 0 && bufferIndex == worldRef.buffer )
+		{
+			unsigned char * data = (lock.GetData<unsigned char>()) + worldRef.offsetInBytes;
+			unify::Matrix* matrix = (unify::Matrix*)data;
+			*matrix = world[0];
+		}
+
+		UnlockConstants( bufferIndex, lock );
+		bufferIndex++;
+	}
+}
+
 void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 {	
 	if( m_locked != 0 )
@@ -175,10 +217,10 @@ void ConstantBuffer::UnlockConstants( size_t buffer, unify::DataLock & lock )
 
 ResourceType::TYPE ConstantBuffer::GetType() const
 {
-	return m_type;
+	return m_parameters.type;
 }
 
 BufferUsage::TYPE ConstantBuffer::GetUsage() const
 {
-	return m_usage;
+	return m_parameters.usage;
 }

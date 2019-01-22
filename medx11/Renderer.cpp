@@ -262,13 +262,13 @@ void* Renderer::GetHandle() const
 	return (HWND)m_display.GetHandle();
 }
  
-void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInfo, MatrixFeed & matrixFeed, me::render::IConstantBuffer * constantBufferIn )
+void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Effect::ptr effect, const me::render::RenderMethod & method, me::render::MatrixFeed & matrixFeed, me::render::IConstantBuffer * constantBuffer )
 {
-	int instancingSlot = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
+	int instancingSlot = effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
 	Instancing::TYPE instancing = Instancing::None;
 	if ( instancingSlot != -1 )
 	{
-		instancing = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );
+		instancing = effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );	
 	}
 
 	D3D11_PRIMITIVE_TOPOLOGY topology{};
@@ -292,11 +292,11 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 	}
 	m_dxContext->IASetPrimitiveTopology( topology );
 
-	//auto constantBuffer = ProduceConstantBuffer( constantBufferIn->GetParameters() );
-
-	auto && vertexShader = method.effect->GetVertexShader();
-	auto && constantBuffer = vertexShader->GetConstantBuffer();
+	auto && vertexShader = effect->GetVertexShader();
 	auto && constantTable = constantBuffer->GetTable();
+
+	effect->Use( this, renderInfo );
+
 
 	size_t write = 0;	  
 
@@ -416,86 +416,6 @@ void Renderer::Render( const RenderMethod & method, const RenderInfo & renderInf
 		break;
 	case Instancing::QP:
 		break;
-	}
-}
-
-void Renderer::RenderInstances( const RenderMethod & method, const RenderInfo & renderInfo, size_t instances )
-{
-	int instancingSlot = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
-	Instancing::TYPE instancing = Instancing::None;
-	if( instancingSlot != -1 )
-	{
-		instancing = method.effect->GetVertexShader()->GetVertexDeclaration()->GetInstancing( instancingSlot );
-	}
-
-	D3D11_PRIMITIVE_TOPOLOGY topology{};
-	switch( method.primitiveType )
-	{
-	case PrimitiveType::PointList:
-		topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-		break;
-	case PrimitiveType::LineList:
-		topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-		break;
-	case PrimitiveType::LineStrip:
-		topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		break;
-	case PrimitiveType::TriangleList:
-		topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		break;
-	case PrimitiveType::TriangleStrip:
-		topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		break;
-	}
-	m_dxContext->IASetPrimitiveTopology( topology );
-
-	auto && vertexShader = method.effect->GetVertexShader();
-	auto && constantBuffer = vertexShader->GetConstantBuffer();
-	auto && constantTable = constantBuffer->GetTable();
-
-	auto worldRef = constantTable->GetWorld();
-	auto viewRef = constantTable->GetView();
-	auto projRef = constantTable->GetProjection();
-
-
-	for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
-	{
-		unify::DataLock lock;
-		constantBuffer->LockConstants( bufferIndex, lock );
-
-		if( bufferIndex == viewRef.buffer )
-		{
-			unsigned char * data = (lock.GetData< unsigned char >()) + viewRef.offsetInBytes;
-			unify::Matrix* matrix = (unify::Matrix*)data;
-			*matrix = renderInfo.GetViewMatrix();
-		}
-
-		if( bufferIndex == projRef.buffer )
-		{
-			unsigned char * data = (lock.GetData< unsigned char >()) + projRef.offsetInBytes;
-			unify::Matrix* matrix = (unify::Matrix*)data;
-			*matrix = renderInfo.GetProjectionMatrix();
-		}
-
-		if( bufferIndex == worldRef.buffer )
-		{
-			unsigned char * data = (lock.GetData< unsigned char >()) + worldRef.offsetInBytes;
-			unify::Matrix* matrix = (unify::Matrix*)data;
-		}
-
-		constantBuffer->UnlockConstants( bufferIndex, lock );
-		bufferIndex++;
-	}
-
-	method.effect->Use( this, renderInfo );
-
-	if( method.useIB == false )
-	{
-		m_dxContext->DrawInstanced( method.vertexCount, instances, method.startVertex, 0 );
-	}
-	else
-	{
-		m_dxContext->DrawIndexedInstanced( method.indexCount, instances, method.startIndex, method.baseVertexIndex, 0 );
 	}
 }
 

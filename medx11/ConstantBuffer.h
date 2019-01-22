@@ -26,6 +26,8 @@ namespace medx11
 
 		size_t GetBufferCount() const override;
 
+		void Update( const me::render::RenderInfo & renderInfo, const unify::Matrix * world, size_t world_size ) override;
+
 		void Use( size_t startSlot, size_t startBuffer ) override;
 
 		void LockConstants( size_t bufferIndex, unify::DataLock & lock ) override;
@@ -38,14 +40,8 @@ namespace medx11
 	protected:
 		const Renderer * m_renderer;
 		me::render::ConstantBufferParameters m_parameters;
-
 		me::render::ConstantTable m_table;
-
 		std::vector< ID3D11Buffer * > m_buffers;
-		
-		me::render::ResourceType::TYPE m_type;
-		me::render::BufferUsage::TYPE m_usage;
-		
 		size_t m_locked;
 		size_t m_bufferAccessed;
 	};
