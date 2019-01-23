@@ -77,7 +77,7 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 		m_lengths.push_back( count );
 
 		// Ensure we have some sort of idea what we need to be...
-		if ( GetSizeInBytes( slot ) == 0 )
+		if ( m_strides[slot] * m_lengths[slot] == 0 )
 		{
 			throw exception::FailedToCreate( "Not a valid vertex buffer size!" );
 		}
@@ -190,7 +190,7 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, m_strides[bufferIndex] * m_lengths[bufferIndex], unify::DataLockAccess::ReadWrite, 0 );
 	m_locked[bufferIndex] = true;
 }
 
@@ -207,7 +207,7 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, m_strides[bufferIndex] * m_lengths[bufferIndex], unify::DataLockAccess::Readonly, 0 );
 	m_locked[bufferIndex] = true;
 }
 
@@ -245,19 +245,4 @@ bool VertexBuffer::Locked( size_t bufferIndex ) const
 BufferUsage::TYPE VertexBuffer::GetUsage( size_t bufferIndex ) const
 {
 	return m_usage[ bufferIndex ];
-}
-
-size_t VertexBuffer::GetStride( size_t bufferIndex ) const
-{
-	return m_strides[ bufferIndex ];
-}
-
-size_t VertexBuffer::GetLength( size_t bufferIndex ) const
-{
-	return m_lengths[ bufferIndex ];
-}
-
-size_t VertexBuffer::GetSizeInBytes( size_t bufferIndex ) const
-{
-	return m_strides[ bufferIndex ] * m_lengths[ bufferIndex ];
 }

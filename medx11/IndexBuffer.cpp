@@ -104,9 +104,9 @@ void IndexBuffer::Resize( size_t bufferIndex, unsigned int numIndices )
 
 size_t IndexBuffer::Append( size_t bufferIndex, const IndexBuffer & from, size_t vertexOffset  )
 {
-	size_t offset = GetLength( bufferIndex );
+	size_t offset = m_length;
 
-	if ( from.GetLength( bufferIndex ) == 0 )
+	if ( from.m_length == 0 )
 	{
 		return offset;
 	}
@@ -116,7 +116,7 @@ size_t IndexBuffer::Append( size_t bufferIndex, const IndexBuffer & from, size_t
 		throw unify::Exception( "From IndexBuffer's usage is not Staging!" );
 	}
 
-	if ( GetLength( bufferIndex ) == 0 )
+	if ( m_length == 0 )
 	{
 		assert( 0 ); // TODO:
 		//Create( from.GetLength(), nullptr, from.GetUsage(), from.m_pimpl->m_createFlags );
@@ -127,7 +127,7 @@ size_t IndexBuffer::Append( size_t bufferIndex, const IndexBuffer & from, size_t
 		{
 			throw unify::Exception( "IndexBuffer's usage is not Staging!" );
 		}
-		Resize( bufferIndex, GetLength(bufferIndex) + from.GetLength(bufferIndex) );
+		Resize( bufferIndex, m_length + from.m_length );
 	}
 
 	// Copy vertices...
@@ -182,7 +182,7 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, m_stride * m_length, unify::DataLockAccess::ReadWrite, 0 );
 	m_locked = true;
 }
 
@@ -199,7 +199,7 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, GetSizeInBytes(bufferIndex), unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, m_stride * m_length, unify::DataLockAccess::Readonly, 0 );
 	m_locked = true;
 }
 
@@ -256,19 +256,4 @@ bool IndexBuffer::Locked( size_t bufferIndex ) const
 BufferUsage::TYPE IndexBuffer::GetUsage( size_t bufferIndex ) const
 {
 	return m_usage;
-}
-
-size_t IndexBuffer::GetStride( size_t bufferIndex ) const
-{
-	return m_stride;
-}
-
-size_t IndexBuffer::GetLength( size_t bufferIndex ) const
-{
-	return m_length;
-}
-
-size_t IndexBuffer::GetSizeInBytes( size_t bufferIndex ) const
-{
-	return m_stride * m_length;
 }

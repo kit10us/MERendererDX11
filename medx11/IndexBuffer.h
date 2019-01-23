@@ -45,9 +45,6 @@ namespace medx11
 
 		bool Locked( size_t bufferIndex ) const override;
 		me::render::BufferUsage::TYPE GetUsage( size_t bufferIndex ) const override;
-		size_t GetStride( size_t bufferIndex ) const override;
-		size_t GetLength( size_t bufferIndex ) const override;
-		size_t GetSizeInBytes( size_t bufferIndex ) const override;
 
 	protected:
 		const Renderer * m_renderer;
