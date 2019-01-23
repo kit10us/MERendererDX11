@@ -262,7 +262,7 @@ void* Renderer::GetHandle() const
 	return (HWND)m_display.GetHandle();
 }
  
-void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Effect::ptr effect, const me::render::RenderMethod & method, me::render::MatrixFeed & matrixFeed, me::render::IConstantBuffer * constantBuffer )
+void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::render::RenderMethod & method, me::render::Effect::ptr effect, me::render::IConstantBuffer * vertexCB, me::render::IConstantBuffer * pixelCB, me::render::MatrixFeed & matrixFeed )
 {
 	int instancingSlot = effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();
 	Instancing::TYPE instancing = Instancing::None;
@@ -293,10 +293,9 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 	m_dxContext->IASetPrimitiveTopology( topology );
 
 	auto && vertexShader = effect->GetVertexShader();
-	auto && constantTable = constantBuffer->GetTable();
+	auto && constantTable = vertexCB->GetTable();
 
 	effect->Use( this, renderInfo );
-
 
 	size_t write = 0;	  
 
@@ -316,7 +315,7 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 				for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 				{
 					unify::DataLock lock;
-					constantBuffer->LockConstants( bufferIndex, lock );
+					vertexCB->LockConstants( bufferIndex, lock );
 
 					if ( bufferIndex == viewRef.buffer )
 					{
@@ -339,16 +338,17 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 						write += matrixFeed.Consume( &matrix[write], world.count );
 					}
 
-					constantBuffer->UnlockConstants( bufferIndex, lock );
+					vertexCB->UnlockConstants( bufferIndex, lock );
 					bufferIndex++;
 				}
-				constantBuffer->Use( 0, 0 );
+				vertexCB->Use( 0, 0 );
+
 			}
 			break;
 
 		case Instancing::Matrix:	
 			{
-				constantBuffer->Update( renderInfo, nullptr, 0 );
+				vertexCB->Update( renderInfo, nullptr, 0 );
 
 				const size_t bufferStride = sizeof( unify::Matrix );
 				const size_t offset = 0;
@@ -368,12 +368,15 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 				m_dxContext->Unmap( m_instanceBufferM[0], 0 );
 
 				m_dxContext->IASetVertexBuffers( 1, 1, &m_instanceBufferM[0].p, &bufferStride, &offset );
+				vertexCB->Use( 0, 0 );
 			}
 			break;
 
 		case Instancing::QP:
 			break;
 		}
+
+		pixelCB->Use( 0, 0 );
 
 		if( method.useIB == false )
 		{
@@ -386,6 +389,12 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, me::render::Ef
 		write = 0;
 	}
 }
+
+void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::render::RenderMethod & method, me::render::BufferSet * bufferSet, me::render::MatrixFeed & matrixFeed )
+{
+	Render( renderInfo, method, bufferSet->GetEffect(), bufferSet->GetVertexCB(), bufferSet->GetPixelCB(), matrixFeed );
+}
+
 
 IVertexBuffer::ptr Renderer::ProduceVB( VertexBufferParameters parameters ) 
 {

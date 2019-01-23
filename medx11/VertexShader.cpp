@@ -24,7 +24,7 @@ VertexShader::~VertexShader()
 
 void VertexShader::Destroy()
 {
-	m_constantBuffer.reset();
+	//m_constantBuffer.reset();
 	m_vertexShader = nullptr;
 	m_vertexShaderBuffer = nullptr;
 }
@@ -63,7 +63,7 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	assert( !FAILED( result ) );
 
 	m_vertexDeclaration->Build( m_renderer, *this );
-	m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
+	//m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
 }
 
 void VertexShader::SetVertexDeclaration( VertexDeclaration::ptr vertexDeclaration )
@@ -82,6 +82,7 @@ IConstantBuffer::ptr VertexShader::CreateConstantBuffer( BufferUsage::TYPE usage
 	return constantBuffer;
 }
 
+/*
 IConstantBuffer * VertexShader::GetConstantBuffer()
 {
 	return m_constantBuffer.get();
@@ -91,6 +92,7 @@ const IConstantBuffer * VertexShader::GetConstantBuffer() const
 {
 	return GetConstantBuffer();
 }
+*/
 
 const void * VertexShader::GetBytecode() const
 {

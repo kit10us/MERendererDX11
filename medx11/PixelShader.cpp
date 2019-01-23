@@ -26,7 +26,6 @@ PixelShader::~PixelShader()
 
 void PixelShader::Destroy()
 {
-	m_constantBuffer.reset();
 	m_pixelShader = nullptr;
 	m_pixelShaderBuffer = nullptr;
 }
@@ -103,8 +102,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 		}
 	}
 
-	m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
-
+	//m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
 }
 
 me::render::BlendDesc PixelShader::GetBlendDesc() const
@@ -118,6 +116,7 @@ me::render::IConstantBuffer::ptr PixelShader::CreateConstantBuffer( BufferUsage:
 	return constantBuffer;
 }
 
+/*
 IConstantBuffer * PixelShader::GetConstantBuffer()
 {
 	return m_constantBuffer.get();
@@ -127,6 +126,7 @@ const IConstantBuffer * PixelShader::GetConstantBuffer() const
 {
 	return GetConstantBuffer();
 }
+*/
 
 const void * PixelShader::GetBytecode() const
 {
@@ -143,7 +143,7 @@ void PixelShader::Use()
 	auto dxContext = m_renderer->GetDxContext();
 	dxContext->PSSetShader( m_pixelShader, nullptr, 0 );
 
-	m_constantBuffer->Use( 0, 0 );
+	//m_constantBuffer->Use( 0, 0 );
 
 	// Blending...
 	if( m_blendState )

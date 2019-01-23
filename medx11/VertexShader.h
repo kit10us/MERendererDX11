@@ -27,8 +27,10 @@ namespace medx11
 
 	public: // me::render::IShader
 		me::render::IConstantBuffer::ptr CreateConstantBuffer( me::render::BufferUsage::TYPE usage ) const override;
+		/*
 		me::render::IConstantBuffer * GetConstantBuffer() override;
 		const me::render::IConstantBuffer * GetConstantBuffer() const override;
+		*/
 		const void * GetBytecode() const override;
 		size_t GetBytecodeLength() const override;
 		void Use() override;
@@ -45,6 +47,6 @@ namespace medx11
 		me::render::VertexDeclaration::ptr m_vertexDeclaration;
 		CComPtr< ID3D11VertexShader > m_vertexShader;
 		CComPtr< ID3D10Blob > m_vertexShaderBuffer;
-		ConstantBuffer::ptr m_constantBuffer;
+		//ConstantBuffer::ptr m_constantBuffer;
 	};
 }
