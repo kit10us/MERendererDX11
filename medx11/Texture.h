@@ -72,9 +72,7 @@ namespace medx11
 		
 		const unify::Size< unsigned int > & ImageSize() const override;
 
-		bool GetRenderable() const;
-
-		bool GetLockable() const;
+		me::render::TextureLockAccess GetLockAccess() const override;
 
 		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access );
 		

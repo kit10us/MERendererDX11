@@ -71,58 +71,97 @@ const unify::Size< unsigned int > & Texture::ImageSize() const
 	return m_imageSize;
 }
 
-bool Texture::GetRenderable() const
+me::render::TextureLockAccess Texture::GetLockAccess() const
 {
-	return m_parameters.renderable;
-}
-
-bool Texture::GetLockable() const
-{
-	return m_parameters.lockable;
+	return m_parameters.lockAccess;
 }
 
 void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access )
 {
-	if ( !m_created )
+	if ( ! unify::DataLockAccess::Compatible( access, m_parameters.lockAccess.cpu ) )
 	{
-		Create();
+		throw exception::FailedToLock( "Attempted to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );
 	}
 
-	if ( m_parameters.lockable == false )
-	{
-		throw exception::FailedToLock( "Texture is not lockable!" );
-	}
+	if ( ! m_scratch.GetImageCount() )
+	{	
+		D3D11_MAP mapType;
+		{
+			using namespace unify;
+
+			switch( access )
+			{
+			case DataLockAccess::Readonly:
+				mapType = D3D11_MAP_READ;
+				break;
+			case DataLockAccess::Writeonly:
+				mapType = D3D11_MAP_WRITE_DISCARD;
+				break;
+			case DataLockAccess::ReadWrite:
+				mapType = D3D11_MAP_READ_WRITE;
+				break;
+
+			default:
+				throw me::exception::FailedToLock( "Attempted to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) +"!" );
+			}
+		}
 		
-	auto dxContext = m_renderer->GetDxContext();
-	D3D11_MAPPED_SUBRESOURCE mappedResource{};
-	auto result = dxContext->Map( m_texture, 0, unify::DataLockAccess::WriteAccess( access ) ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_READ, 0, &mappedResource );
-	if ( FAILED( result ) )
-	{
-		throw unify::Exception( "Failed to lock texture!" );
-	}
-	lock.pBits = (unsigned char*)mappedResource.pData;
-	lock.uWidth = m_imageSize.width;
-	lock.uHeight = m_imageSize.height;
-	lock.uStride = mappedResource.RowPitch;
+		auto dxContext = m_renderer->GetDxContext();
+		D3D11_MAPPED_SUBRESOURCE mappedResource{};
+		auto result = dxContext->Map( m_texture, 0, /*unify::DataLockAccess::WriteAccess( access ) ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_READ*/ mapType, 0, &mappedResource );
+		if ( FAILED( result ) )
+		{
+			throw me::exception::FailedToLock( "Failed to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );
+		}
+
+		lock.pBits = (unsigned char*)mappedResource.pData;
+		lock.uWidth = m_imageSize.width;
+		lock.uHeight = m_imageSize.height;
+		lock.uStride = mappedResource.RowPitch;
 	
-	lock.bpp = 4;
-	if ( rect )
-	{
-		lock.uWidth = rect->right - rect->left;
-		lock.uHeight = rect->bottom - rect->top;
+		lock.bpp = 4;
+		if ( rect )
+		{
+			lock.uWidth = rect->right - rect->left;
+			lock.uHeight = rect->bottom - rect->top;
+		}
+		else
+		{
+			lock.uWidth = m_imageSize.width;
+			lock.uHeight = m_imageSize.height;
+		}
+		lock.totalBytes = lock.uHeight * lock.uStride;
 	}
 	else
 	{
-		lock.uWidth = m_imageSize.width;
-		lock.uHeight = m_imageSize.height;
+		lock.pBits = m_scratch.GetImage( level, 0, 0 )->pixels;
+		lock.uStride = m_scratch.GetImage( level, 0, 0 )->rowPitch;
+		lock.bpp = 4;
+		if( rect )
+		{
+			lock.uWidth = rect->right - rect->left;
+			lock.uHeight = rect->bottom - rect->top;
+		}
+		else
+		{
+			lock.uWidth = m_imageSize.width;
+			lock.uHeight = m_imageSize.height;
+		}
+		lock.totalBytes = lock.uHeight * lock.uStride;
 	}
-	lock.totalBytes = lock.uHeight * lock.uStride;
 }
 
 void Texture::UnlockRect( unsigned int level )
 {
 	auto dxContext = m_renderer->GetDxContext();
-	dxContext->Unmap( m_texture, 0 );
+	if ( ! m_scratch.GetImageCount() )
+	{
+		dxContext->Unmap( m_texture, 0 );
+	}
+	else
+	{
+		// Nothing to do.
+	}
 }
 
 // Load all possible info (short of bits) about the texture
@@ -309,6 +348,34 @@ void Texture::LoadImage( unify::Path filePath )
 	data.SysMemPitch = m_scratch.GetImage( 0, 0, 0 )->rowPitch;
 	data.SysMemSlicePitch = m_scratch.GetImage( 0, 0, 0 )->slicePitch;
 
+	UINT cpuAccess {};
+
+	{
+		using namespace unify;
+
+		switch( m_parameters.lockAccess.cpu )
+		{
+		case DataLockAccess::Readonly:
+			cpuAccess = D3D11_CPU_ACCESS_READ;
+			break;
+		case DataLockAccess::Writeonly:
+			cpuAccess = D3D11_CPU_ACCESS_WRITE;
+			break;
+		case DataLockAccess::ReadWrite:
+			cpuAccess = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+			break;
+
+		default:
+			cpuAccess = 0;
+			break;
+		}
+	}
+
+	UINT bindFlags {};
+	bindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+	m_parameters.size = unify::Size< size_t >( width, height );
+
 	D3D11_TEXTURE2D_DESC textureDesc{};
 	textureDesc.Width = width;
 	textureDesc.Height = height;
@@ -318,14 +385,14 @@ void Texture::LoadImage( unify::Path filePath )
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = unify::Cast< D3D11_USAGE >( m_parameters.usage );
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	textureDesc.BindFlags = bindFlags;
+	textureDesc.CPUAccessFlags = cpuAccess;
 	textureDesc.MiscFlags = 0;
 	result = dxDevice->CreateTexture2D( &textureDesc, &data, &m_texture );
 	if ( FAILED( result ) )
 	{
 		Destroy();
-		throw unify::Exception( "Failed to load image\"" + filePath.ToString() + "\"!" );
+		throw unify::Exception( "Failed to create from file image\"" + filePath.ToString() + "\"!" );
 	}
 
 	D3D11_SAMPLER_DESC colorMapDesc{};

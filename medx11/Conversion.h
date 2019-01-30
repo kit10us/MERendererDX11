@@ -6,6 +6,7 @@
 
 #include <me/render/Format.h>
 #include <me/render/BufferUsage.h>
+#include <me/render/ITexture.h>
 #include <unify/Cast.h>
 #include <dxgiformat.h>
 #include <d3d11.h>
