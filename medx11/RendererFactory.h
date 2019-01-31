@@ -15,6 +15,6 @@ namespace medx11
 	class RendererFactory : public me::render::IRendererFactory
 	{
 	public:
-		me::render::IRenderer * Produce( me::os::IOS * os, me::render::Display display, size_t index ) override;
+		me::render::IRenderer * Produce( me::render::Display display, size_t index ) override;
 	};
 }

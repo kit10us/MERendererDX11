@@ -15,7 +15,7 @@ namespace medx11
 	class Renderer : public me::render::IRenderer
 	{
 	public:
-		Renderer( me::os::IOS * os, me::render::Display display, size_t index );
+		Renderer( me::render::Display display, size_t index );
 		virtual ~Renderer();				
 
 		ID3D11Device * GetDxDevice() const;
@@ -23,7 +23,7 @@ namespace medx11
 		IDXGISwapChain * GetSwapChain() const;
 
 	public: // me::render::IRenderer...
-		me::game::IGame* GetGame() override;
+		//me::game::IGame* GetGame() override;
 
 		const me::render::Display & GetDisplay() const;
 
@@ -53,7 +53,7 @@ namespace medx11
 		void UseTextures( std::vector< me::render::ITexture::ptr > textures ) override;
 
 	private:
-		mewos::WindowsOS * m_os;
+		me::game::IGame * m_game;
 		me::render::Display m_display;
 		size_t m_index;
 

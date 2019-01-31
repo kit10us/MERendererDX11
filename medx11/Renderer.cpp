@@ -20,9 +20,8 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-Renderer::Renderer( me::os::IOS * os, Display display, size_t index )
-	: m_os{ dynamic_cast<mewos::WindowsOS *>( os ) }
-	, m_display( display )
+Renderer::Renderer( Display display, size_t index )
+	: m_display( display )
 	, m_swapChainDesc{}
 	, m_index{ index }
 	, m_totalInstances{ 5000 }
@@ -210,10 +209,12 @@ IDXGISwapChain * Renderer::GetSwapChain() const
 	return m_swapChain;
 }
 
+/*
 me::game::IGame * Renderer::GetGame()
 {
-	return m_os->GetGame();
+	return m_game;
 }
+*/
 
 const Display & Renderer::GetDisplay() const
 {
