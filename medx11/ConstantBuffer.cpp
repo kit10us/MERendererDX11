@@ -1,11 +1,10 @@
-// Copyright (c) 2003 - 2013, Evil Quail LLC
+// Copyright (c) 2003 - 2013, Kit10 Studios LLC
 // All Rights Reserved
 
 #include <medx11/ConstantBuffer.h>
 #include <me/exception/FailedToCreate.h>
 #include <me/exception/FailedToLock.h>
 #include <me/exception/NotImplemented.h>
-#include <me/exception/Exception.h>
 
 using namespace medx11;
 using namespace me;

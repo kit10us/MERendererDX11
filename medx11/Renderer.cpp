@@ -1,4 +1,4 @@
-// Copyright (c) 2002 - 2018, Evil Quail LLC
+// Copyright (c) 2002 - 2018, Kit10 Studios LLC
 // All Rights Reserved
 
 #include <medx11/Renderer.h>
@@ -204,18 +204,6 @@ ID3D11DeviceContext * Renderer::GetDxContext() const
 	return m_dxContext;
 }
 
-IDXGISwapChain * Renderer::GetSwapChain() const
-{
-	return m_swapChain;
-}
-
-/*
-me::game::IGame * Renderer::GetGame()
-{
-	return m_game;
-}
-*/
-
 const Display & Renderer::GetDisplay() const
 {
 	return m_display;
@@ -258,11 +246,6 @@ size_t Renderer::GetIndex() const
 	return m_index;
 }
 
-void* Renderer::GetHandle() const
-{
-	return (HWND)m_display.GetHandle();
-}
- 
 void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::render::RenderMethod & method, me::render::Effect::ptr effect, me::render::IConstantBuffer * vertexCB, me::render::IConstantBuffer * pixelCB, me::render::MatrixFeed & matrixFeed )
 {
 	int instancingSlot = effect->GetVertexShader()->GetVertexDeclaration()->GetInstanceingSlot();

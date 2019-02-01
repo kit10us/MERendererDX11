@@ -1,9 +1,8 @@
-// Copyright (c) 2002 - 2018, Evil Quail LLC
+// Copyright (c) 2002 - 2018, Kit10 Studios LLC
 // All Rights Reserved
 
 #pragma once
 
-#include <mewos/WindowsOS.h>
 #include <medx11/DirectX.h>
 #include <me/render/IRenderer.h>
 #include <me/render/Display.h>
@@ -20,7 +19,6 @@ namespace medx11
 
 		ID3D11Device * GetDxDevice() const;
 		ID3D11DeviceContext * GetDxContext() const;
-		IDXGISwapChain * GetSwapChain() const;
 
 	public: // me::render::IRenderer...
 		//me::game::IGame* GetGame() override;
@@ -38,8 +36,6 @@ namespace medx11
 
 		size_t GetIndex() const override;
 
-		void* GetHandle() const override;
-
 		void Render( const me::render::RenderInfo & renderInfo, const me::render::RenderMethod & method, me::render::Effect::ptr effect, me::render::IConstantBuffer * vertexCB, me::render::IConstantBuffer * pixelCB, me::render::MatrixFeed & matrixFeed ) override;
 		void Render( const me::render::RenderInfo & renderInfo, const me::render::RenderMethod & method, me::render::BufferSet * bufferSet, me::render::MatrixFeed & matrixFeed ) override;
 
@@ -53,7 +49,6 @@ namespace medx11
 		void UseTextures( std::vector< me::render::ITexture::ptr > textures ) override;
 
 	private:
-		me::game::IGame * m_game;
 		me::render::Display m_display;
 		size_t m_index;
 

@@ -1,11 +1,10 @@
-// Copyright (c) 2002 - 2018, Evil Quail LLC
+// Copyright (c) 2002 - 2018, Kit10 Studios LLC
 // All Rights Reserved
 
 #include <medx11/VertexBuffer.h>
 #include <me/exception/FailedToCreate.h>
 #include <me/exception/FailedToLock.h>
 #include <me/exception/NotImplemented.h>
-#include <me/exception/Exception.h>
 
 using namespace medx11;
 using namespace me;
@@ -128,7 +127,12 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 			{
 				result = dxDevice->CreateBuffer( &vertexBufferDesc, nullptr, &buffer );
 			}
-			OnFailedThrow( result, "Failed to create vertex buffer!" );
+			
+			if( FAILED( result ) )
+			{
+				throw unify::Exception( "Failed to create vertex buffer!" );
+			}
+
 			m_buffers.push_back( buffer );
 		}
 	}
