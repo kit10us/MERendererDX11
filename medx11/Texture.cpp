@@ -287,7 +287,7 @@ void Texture::CreateFromSize()
 
 void Texture::LoadHeader()
 {
-	unify::Path imageHeaderFilepath{ unify::ChangeExtension( m_parameters.source, ".xml" ) };
+	unify::Path imageHeaderFilepath{ unify::ChangeExtension( m_parameters.source, ".me_image" ) };
 
 	// Check if the file exists...
 	if ( !imageHeaderFilepath.Exists() )
