@@ -108,7 +108,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 		
 		auto dxContext = m_renderer->GetDxContext();
 		D3D11_MAPPED_SUBRESOURCE mappedResource{};
-		auto result = dxContext->Map( m_texture, 0, /*unify::DataLockAccess::WriteAccess( access ) ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_READ*/ mapType, 0, &mappedResource );
+		auto result = dxContext->Map( m_texture, 0, mapType, 0, &mappedResource );
 		if ( FAILED( result ) )
 		{
 			throw me::exception::FailedToLock( "Failed to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );

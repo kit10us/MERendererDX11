@@ -63,7 +63,6 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	assert( !FAILED( result ) );
 
 	m_vertexDeclaration->Build( m_renderer, *this );
-	//m_constantBuffer = { CreateConstantBuffer( me::render::BufferUsage::Dynamic ) };
 }
 
 void VertexShader::SetVertexDeclaration( VertexDeclaration::ptr vertexDeclaration )

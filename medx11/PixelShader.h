@@ -25,14 +25,10 @@ namespace medx11
 
 	public: // me::render::IShader
 		me::render::IConstantBuffer::ptr CreateConstantBuffer( me::render::BufferUsage::TYPE usage ) const override;
-		/*
-		me::render::IConstantBuffer * GetConstantBuffer() override;
-		const me::render::IConstantBuffer * GetConstantBuffer() const override;
-		*/
 		const void * GetBytecode() const override;
 		size_t GetBytecodeLength() const override;
 		void Use() override;
-		bool IsTrans() const;
+		bool IsTrans() const override;
 
 	public: // rm::IResource
 		bool Reload() override;
@@ -45,6 +41,5 @@ namespace medx11
 		CComPtr< ID3D10Blob > m_pixelShaderBuffer;
 		CComPtr< ID3D11BlendState > m_blendState;
 		D3D11_BLEND_DESC m_blendDesc;
-		//ConstantBuffer::ptr m_constantBuffer;
 	};
 }
