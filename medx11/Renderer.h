@@ -4,6 +4,7 @@
 #pragma once
 
 #include <medx11/DirectX.h>
+#include <mewos/IWindowsOS.h>
 #include <me/render/IRenderer.h>
 #include <me/render/Display.h>
 #include <atlbase.h>
@@ -14,7 +15,7 @@ namespace medx11
 	class Renderer : public me::render::IRenderer
 	{
 	public:
-		Renderer( me::render::Display display, size_t index );
+		Renderer( mewos::IWindowsOS * os, me::render::Display display, size_t index );
 		virtual ~Renderer();				
 
 		ID3D11Device * GetDxDevice() const;

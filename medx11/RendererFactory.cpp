@@ -8,7 +8,16 @@
 
 using namespace medx11;
 
+RendererFactory::RendererFactory( mewos::IWindowsOS * os )
+	: m_os{ os }
+{
+}
+
+RendererFactory::~RendererFactory()
+{
+}
+
 me::render::IRenderer * RendererFactory::Produce( me::render::Display display, size_t index )
 {
-	return new medx11::Renderer( display, index );
+	return new medx11::Renderer( m_os, display, index );
 }

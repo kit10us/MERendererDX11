@@ -20,7 +20,7 @@ using namespace medx11;
 using namespace me;
 using namespace render;
 
-Renderer::Renderer( Display display, size_t index )
+Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 	: m_display( display )
 	, m_swapChainDesc{}
 	, m_index{ index }
@@ -35,7 +35,7 @@ Renderer::Renderer( Display display, size_t index )
 
 	HRESULT result = S_OK;
 
-	HWND hWnd = (HWND)display.GetHandle();
+	HWND hWnd = (HWND)os->GetHandle();
 
 	m_swapChainDesc.BufferCount = 1;
 	m_swapChainDesc.BufferDesc.Width = (unsigned int )display.GetSize().width;
