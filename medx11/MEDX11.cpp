@@ -1,7 +1,7 @@
 // Copyright (c) 2002 - 2018, Kit10 Studios LLC
 // All Rights Reserved
 
-#include <mewos/IWindowsOS.h>
+#include <mewos/WindowsOS.h>
 #include <medx11/RendererFactory.h>
 #include <memory.h>
 #include <me/game/IGame.h>

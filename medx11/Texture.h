@@ -17,6 +17,7 @@
 #include <memory>
 
 #include <atlbase.h>
+#include <cstdint>
 #include <DirectXTex.h>
 
 

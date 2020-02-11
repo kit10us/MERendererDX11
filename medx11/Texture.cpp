@@ -2,10 +2,10 @@
 // All Rights Reserved
 //
 
+#include <medx11/Texture.h>
+
 #include <DDS.h>
 #pragma comment( lib, "DirectXTex" )
-
-#include <medx11/Texture.h>
 #include <me/exception/NotImplemented.h>
 #include <me/exception/FailedToLock.h>
 #include <qxml/Document.h>
