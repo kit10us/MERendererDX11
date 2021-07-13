@@ -197,7 +197,7 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 	{
 		if( variable.hasDefault )
 		{
-			lock.CopyBytesFrom( &variable.default[0], variable.offsetInBytes, variable.default.size() * sizeof( float ) );
+			lock.CopyBytesFrom( &variable.defaultValue[0], variable.offsetInBytes, variable.defaultValue.size() * sizeof( float ) );
 		}
 	}
 }
