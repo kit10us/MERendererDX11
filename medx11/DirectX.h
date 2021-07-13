@@ -15,16 +15,7 @@
 
 #pragma warning ( disable: 4221 ) // unused lib
 #pragma warning ( disable: 4006 ) // duplicate definition
-#pragma warning( disable: 4005 ) // warning C4005: 'MAKEFOURCC': macro redefinition
-
-#ifdef _DEBUG
-#define D3D_DEBUG_INFO
-#pragma comment( lib, "d3d9" )
-#pragma comment( lib, "d3dx9d" )
-#else // NDEBUG
-#pragma comment( lib, "d3d9" )
-#pragma comment( lib, "d3dx9" )
-#endif
+#pragma warning( disable: 4005 ) // warning C4005: 'MAKEFOURCC': macro redefinition\
 
 #include <D3D11.h>
 #include <D3DCompiler.h>
