@@ -318,11 +318,11 @@ void Texture::LoadImage( unify::Path filePath )
 
 	if ( m_parameters.source.IsExtension( "DDS" ) )
 	{
-		result = DirectX::LoadFromDDSFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), 0, &texMetadata, m_scratch );
+		result = DirectX::LoadFromDDSFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "BMP" ) || m_parameters.source.IsExtension( "JPG" ) || m_parameters.source.IsExtension( "JPEG" ) || m_parameters.source.IsExtension( "TIFF" ) || m_parameters.source.IsExtension( "TIF" ) || m_parameters.source.IsExtension( "HDP" ) || m_parameters.source.IsExtension( "PNG" ) )
 	{
-		result = DirectX::LoadFromWICFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), 0, &texMetadata, m_scratch );
+		result = DirectX::LoadFromWICFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "TGA" ) )
 	{
