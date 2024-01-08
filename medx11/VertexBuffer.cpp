@@ -110,7 +110,7 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 
 		D3D11_BUFFER_DESC vertexBufferDesc{};
 		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vertexBufferDesc.ByteWidth = parameters.vertexDeclaration->GetSizeInBytes( slot ) * count;
+		vertexBufferDesc.ByteWidth = (UINT)(parameters.vertexDeclaration->GetSizeInBytes( slot ) * count);
 		vertexBufferDesc.Usage = usageDX;
 		vertexBufferDesc.CPUAccessFlags = CPUAccessFlags;
 
@@ -178,7 +178,7 @@ void VertexBuffer::Use( size_t startBuffer, size_t startSlot ) const
 {
 	auto dxContext = m_renderer->GetDxContext();
 	std::vector< unsigned int > offsetInBytes( m_strides.size(), 0 );
-	dxContext->IASetVertexBuffers( 0, m_buffers.size(), &m_buffers[0], &m_strides[0], &offsetInBytes[0] );
+	dxContext->IASetVertexBuffers( 0, (UINT)m_buffers.size(), &m_buffers[0], (UINT*)&m_strides[0], &offsetInBytes[0] );
 }
 
 void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
@@ -188,13 +188,13 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
-	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
+	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
 	if ( FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, m_strides[bufferIndex] * m_lengths[bufferIndex], unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), unify::DataLockAccess::ReadWrite, 0 );
 	m_locked[bufferIndex] = true;
 }
 
@@ -205,13 +205,13 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
-	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
+	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
 	if ( FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, m_strides[bufferIndex] * m_lengths[bufferIndex], unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), unify::DataLockAccess::Readonly, 0 );
 	m_locked[bufferIndex] = true;
 }
 
@@ -223,7 +223,7 @@ void VertexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 	auto dxDevice = m_renderer->GetDxDevice();
 	auto dxContext = m_renderer->GetDxContext();
 
-	dxContext->Unmap( m_buffers[ bufferIndex ], bufferIndex );
+	dxContext->Unmap( m_buffers[ bufferIndex ], (UINT)bufferIndex );
 
 	m_locked[bufferIndex] = false;
 }
@@ -236,7 +236,7 @@ void VertexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) 
 	auto dxDevice = m_renderer->GetDxDevice();
 	auto dxContext = m_renderer->GetDxContext();
 
-	dxContext->Unmap( m_buffers[ bufferIndex ], bufferIndex );
+	dxContext->Unmap( m_buffers[ bufferIndex ], (UINT)bufferIndex );
 	
 	m_locked[bufferIndex] = false;
 }

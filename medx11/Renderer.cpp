@@ -139,7 +139,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 	{
 		D3D11_BUFFER_DESC bufferDesc = {};
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		bufferDesc.ByteWidth = sizeof( unify::Matrix ) * m_totalInstances;
+		bufferDesc.ByteWidth = (UINT)(sizeof( unify::Matrix ) * m_totalInstances);
 		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;				  
 
@@ -334,8 +334,8 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::rend
 			{
 				vertexCB->Update( renderInfo, nullptr, 0 );
 
-				const size_t bufferStride = sizeof( unify::Matrix );
-				const size_t offset = 0;
+				const UINT bufferStride = sizeof( unify::Matrix );
+				const UINT offset = 0;
 
 				// The number of matrices we use per instance.
 				const size_t matricesPerInstance = matrixFeed.Stride();
@@ -364,11 +364,11 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::rend
 
 		if( method.useIB == false )
 		{
-			m_dxContext->DrawInstanced( method.vertexCount, write, method.startVertex, 0 );
+			m_dxContext->DrawInstanced( method.vertexCount, (UINT)write, method.startVertex, 0 );
 		}
 		else
 		{
-			m_dxContext->DrawIndexedInstanced( method.indexCount, write, method.startIndex, method.baseVertexIndex, 0 );
+			m_dxContext->DrawIndexedInstanced( method.indexCount, (UINT)write, method.startIndex, method.baseVertexIndex, 0 );
 		}
 		write = 0;
 	}
@@ -441,6 +441,6 @@ void Renderer::UseTextures( std::vector< ITexture::ptr > textures )
 	{
 		auto texture = reinterpret_cast<medx11::Texture*>( textures[0].get() );
 		dxContext->PSSetSamplers( 0, 1, &texture->m_colorMapSampler.p );
-		dxContext->PSSetShaderResources( 0, textures.size(), views );
+		dxContext->PSSetShaderResources( 0, (UINT)textures.size(), views );
 	}
 }

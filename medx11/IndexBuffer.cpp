@@ -40,7 +40,7 @@ void IndexBuffer::Create( IndexBufferParameters parameters )
 	HRESULT hr = S_OK;
 
 	m_stride = sizeof( unsigned int );
-	m_length = parameters.countAndSource[0].count;
+	m_length = (unsigned int)parameters.countAndSource[0].count;
 
 	// Fill in a buffer description.
 	D3D11_BUFFER_DESC bufferDesc;
@@ -177,7 +177,7 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
-	HRESULT result = dxContext->Map( m_buffer, bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
+	HRESULT result = dxContext->Map( m_buffer, (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
 	if ( FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
@@ -194,7 +194,7 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
-	HRESULT result = dxContext->Map( m_buffer, bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
+	HRESULT result = dxContext->Map( m_buffer, (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
 	if ( FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
@@ -212,7 +212,7 @@ void IndexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 	auto dxDevice = m_renderer->GetDxDevice();
 	auto dxContext = m_renderer->GetDxContext();
 
-	dxContext->Unmap( m_buffer, bufferIndex );
+	dxContext->Unmap( m_buffer, (UINT)bufferIndex );
 
 	m_locked = false;
 }
@@ -225,7 +225,7 @@ void IndexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) c
 	auto dxDevice = m_renderer->GetDxDevice();
 	auto dxContext = m_renderer->GetDxContext();
 
-	dxContext->Unmap( m_buffer, bufferIndex );
+	dxContext->Unmap( m_buffer, (UINT)bufferIndex );
 
 	m_locked = false;
 }

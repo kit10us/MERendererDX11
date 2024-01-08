@@ -45,7 +45,7 @@ void ConstantBuffer::Create( ConstantBufferParameters parameters )
 	for( size_t bufferIndex = 0, buffer_count = m_table.BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 	{
 		D3D11_BUFFER_DESC constantBufferDesc{};
-		constantBufferDesc.ByteWidth = m_table.GetSizeInBytes( bufferIndex );
+		constantBufferDesc.ByteWidth = (UINT)m_table.GetSizeInBytes( bufferIndex );
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -146,23 +146,23 @@ void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 		switch( m_parameters.type )
 		{
 		case ResourceType::PixelShader:
-			dxContext->PSSetConstantBuffers( startSlot, m_buffers.size(), &m_buffers[ startBuffer ] );
+			dxContext->PSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[ startBuffer ] );
 			break;
 
 		case ResourceType::VertexShader:
-			dxContext->VSSetConstantBuffers( startSlot, m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->VSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::ComputeShader:
-			dxContext->CSSetConstantBuffers( startSlot, m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->CSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::DomainShader:
-			dxContext->DSSetConstantBuffers( startSlot, m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->DSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::GeometryShader:
-			dxContext->GSSetConstantBuffers( startSlot, m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->GSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		default:

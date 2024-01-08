@@ -135,7 +135,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 	else
 	{
 		lock.pBits = m_scratch.GetImage( level, 0, 0 )->pixels;
-		lock.uStride = m_scratch.GetImage( level, 0, 0 )->rowPitch;
+		lock.uStride = (UINT)m_scratch.GetImage( level, 0, 0 )->rowPitch;
 		lock.bpp = 4;
 		if( rect )
 		{
@@ -338,8 +338,8 @@ void Texture::LoadImage( unify::Path filePath )
 		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
 	}
 
-	unsigned int width = m_scratch.GetImage( 0, 0, 0 )->width;
-	unsigned int height = m_scratch.GetImage( 0, 0, 0 )->height;
+	UINT width = (UINT)m_scratch.GetImage( 0, 0, 0 )->width;
+	UINT height = (UINT)m_scratch.GetImage( 0, 0, 0 )->height;
 
 	m_parameters.format = unify::Cast< me::render::Format::TYPE >( m_scratch.GetImage( 0, 0, 0 )->format );
 
