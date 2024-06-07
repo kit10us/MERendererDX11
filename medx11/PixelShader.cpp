@@ -67,7 +67,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 		throw exception::FailedToCreate( "Failed to create shader, neither code nor file path specified!" );
 	}
 
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		OutputDebugStringA( (char*)errorBlob->GetBufferPointer() );
 		throw exception::FailedToCreate( std::string( "Failed to create shader \"" ) + m_parameters.path.ToString() + "\": " +  std::string( (char*)errorBlob->GetBufferPointer() ) );
@@ -77,7 +77,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 
 	ID3D11ClassLinkage * classLinkage = nullptr;
 	result = dxDevice->CreatePixelShader( m_pixelShaderBuffer->GetBufferPointer(), m_pixelShaderBuffer->GetBufferSize(), classLinkage, &m_pixelShader );
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		throw exception::FailedToCreate( "Failed to create shader!" );
 	}
@@ -96,7 +96,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 		m_blendDesc.RenderTarget[0].RenderTargetWriteMask = (UINT8)parameters.blendDesc.renderTargetWriteMask;
 		HRESULT hr = dxDevice->CreateBlendState( &m_blendDesc, &m_blendState );
 
-		if( FAILED( hr ) )
+		if( WIN_FAILED( hr ) )
 		{
 			throw exception::FailedToCreate( "Failed to create pixel shader \"" + m_parameters.path.ToString() + "\" blending state!" );
 		}

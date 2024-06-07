@@ -6,7 +6,6 @@
 #include <medx11/Renderer.h>
 #include <medx11/ConstantBuffer.h>
 #include <me/render/VertexDeclaration.h>
-#include <atlbase.h>
 
 namespace medx11
 {

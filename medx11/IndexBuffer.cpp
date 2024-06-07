@@ -54,7 +54,7 @@ void IndexBuffer::Create( IndexBufferParameters parameters )
 
 	// Create the buffer with the device.
 	hr = dxDevice->CreateBuffer( &bufferDesc, &initialData, &m_buffer );
-	if ( FAILED( hr ) )
+	if ( WIN_FAILED( hr ) )
 	{
 		throw exception::FailedToCreate( "Failed to create index buffer!" );
 	}
@@ -178,7 +178,7 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffer, (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if ( FAILED( result ) )
+	if ( WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
@@ -195,7 +195,7 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffer, (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if ( FAILED( result ) )
+	if ( WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		

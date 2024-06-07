@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <atlbase.h>
+#include <memory>
+
 #include <medx11/Renderer.h>
 #include <me/render/IIndexBuffer.h>
 #include <me/render/BufferUsage.h>
@@ -10,8 +13,6 @@
 #include <me/render/BufferUsage.h>
 #include <unify/unify.h>
 #include <unify/Flags.h>
-#include <atlbase.h>
-#include <memory>
 
 namespace medx11
 {

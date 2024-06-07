@@ -60,7 +60,7 @@ std::vector< D3D11_INPUT_ELEMENT_DESC > ToDX( const VertexElement & element )
 	for( size_t i = 0; i < count; ++i )
 	{
 		outVector[ i ] = out;
-		outVector[ i ].SemanticIndex += i;
+		outVector[ i ].SemanticIndex += (UINT)i;
 	}
 
 	return outVector;
@@ -86,7 +86,7 @@ VertexConstruct::VertexConstruct( IRenderer * renderer, const VertexDeclaration 
 	}
 
 	HRESULT hr = m_renderer->GetDxDevice()->CreateInputLayout( &elements[0], (UINT)elements.size(), vs.GetBytecode(), vs.GetBytecodeLength(), &m_layout );
-	if ( FAILED( hr ) )
+	if (WIN_FAILED( hr ) )
 	{
 		throw unify::Exception( "Failed to create vertex declaration!" );
 	}

@@ -53,7 +53,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 	D3D_FEATURE_LEVEL featureLevelsRequested[] = { D3D_FEATURE_LEVEL_11_0 };
 	D3D_FEATURE_LEVEL featureLevelSupported;
 	result = D3D11CreateDeviceAndSwapChain( 0, D3D_DRIVER_TYPE_HARDWARE, 0, flags, featureLevelsRequested, sizeof( featureLevelsRequested ) / sizeof( D3D_FEATURE_LEVEL ), D3D11_SDK_VERSION, &m_swapChainDesc, &m_swapChain, &m_dxDevice, &featureLevelSupported, &m_dxContext );
-	if ( FAILED( result ) )
+	if ( WIN_FAILED( result ) )
 	{
 		throw me::exception::FailedToCreate( "Failed to create Direct-X 11!" );
 	}
@@ -63,7 +63,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 
 		CComPtr< ID3D11Texture2D > backBuffer;
 		result = m_swapChain->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&backBuffer );
-		if ( FAILED( result ) )
+		if (WIN_FAILED( result ) )
 		{
 			m_swapChain = 0;
 			m_dxDevice = 0;
@@ -73,7 +73,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 
 		result = m_dxDevice->CreateRenderTargetView( backBuffer, 0, &m_renderTargetView );
 		backBuffer = 0;
-		if ( FAILED( result ) )
+		if (WIN_FAILED( result ) )
 		{
 			m_swapChain = 0;
 			m_dxDevice = 0;
@@ -96,7 +96,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 		depthStencilDesc.CPUAccessFlags = 0;
 		depthStencilDesc.MiscFlags = 0;
 		result = m_dxDevice->CreateTexture2D( &depthStencilDesc, nullptr, &m_depthStencilBuffer );
-		assert( !FAILED( result ) );
+		assert( !WIN_FAILED( result ) );
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = D3D11_DEPTH_STENCIL_VIEW_DESC();
 		depthStencilViewDesc.Format = depthStencilDesc.Format;
@@ -104,7 +104,7 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 		result = m_dxDevice->CreateDepthStencilView( m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView );
-		assert( !FAILED( result ) );
+		assert( !WIN_FAILED( result ) );
 
 		m_dxContext->OMSetRenderTargets( 1, &m_renderTargetView.p, m_depthStencilView.p );
 	}
@@ -144,10 +144,10 @@ Renderer::Renderer( mewos::IWindowsOS * os, Display display, size_t index )
 		bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;				  
 
 		result = m_dxDevice->CreateBuffer( &bufferDesc, nullptr, &m_instanceBufferM[ 0 ] );
-		assert( !FAILED( result ) );
+		assert( !WIN_FAILED( result ) );
 
 		result = m_dxDevice->CreateBuffer( &bufferDesc, nullptr, &m_instanceBufferM[ 1 ] );
-		assert( !FAILED( result ) );
+		assert( !WIN_FAILED( result ) );
 	}
 
 	{
@@ -343,7 +343,7 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::rend
 				D3D11_MAPPED_SUBRESOURCE subResource{};
 
 				HRESULT result = m_dxContext->Map( m_instanceBufferM[0], 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subResource );
-				assert( !FAILED( result ) );
+				assert( !WIN_FAILED( result ) );
 
 				write += matrixFeed.Consume( &((unify::Matrix*)subResource.pData)[write], m_totalInstances );
 

@@ -51,7 +51,7 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	}
 	unsigned int flags2 = 0; // Only used for effect compilation.
 	result = D3DCompileFromFile( unify::Cast< std::wstring >( m_parameters.path.ToString() ).c_str(), shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_vertexShaderBuffer, &errorBlob );
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		OutputDebugStringA( (char*)errorBlob->GetBufferPointer() );
 		throw exception::FailedToCreate( std::string( "Failed to create shader \"" ) + m_parameters.path.ToString() + "\": " +  std::string( (char*)errorBlob->GetBufferPointer() ) );
@@ -60,7 +60,7 @@ void VertexShader::Create( VertexShaderParameters parameters )
 	auto dxDevice = m_renderer->GetDxDevice();
 	ID3D11ClassLinkage * classLinkage = nullptr;
 	result = dxDevice->CreateVertexShader( m_vertexShaderBuffer->GetBufferPointer(), m_vertexShaderBuffer->GetBufferSize(), classLinkage, &m_vertexShader );
-	assert( !FAILED( result ) );
+	assert( !WIN_FAILED( result ) );
 
 	m_vertexDeclaration->Build( m_renderer, *this );
 }

@@ -109,7 +109,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 		auto dxContext = m_renderer->GetDxContext();
 		D3D11_MAPPED_SUBRESOURCE mappedResource{};
 		auto result = dxContext->Map( m_texture, 0, mapType, 0, &mappedResource );
-		if ( FAILED( result ) )
+		if (WIN_FAILED( result ) )
 		{
 			throw me::exception::FailedToLock( "Failed to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );
 		}
@@ -188,7 +188,7 @@ void Texture::CreateFromSize()
 
 	DirectX::TexMetadata texMetadata{};
 
-	if (FAILED( result ))
+	if (WIN_FAILED( result ))
 	{
 		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
 	}
@@ -209,7 +209,7 @@ void Texture::CreateFromSize()
 	textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	textureDesc.MiscFlags = 0;
 	result = dxDevice->CreateTexture2D( &textureDesc, nullptr, &m_texture );
-	if (FAILED( result ))
+	if (WIN_FAILED( result ))
 	{
 		Destroy();
 		throw unify::Exception( "Failed to create texture of size " + unify::Cast< std::string >( width ) + "x" + unify::Cast< std::string >( height ) + "!" );
@@ -270,7 +270,7 @@ void Texture::CreateFromSize()
 	colorMapDesc.MinLOD = 0;
 	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	result = dxDevice->CreateSamplerState( &colorMapDesc, &m_colorMapSampler );
-	assert( !FAILED( result ) );
+	assert( !WIN_FAILED( result ) );
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureResourceDesc{};
 	textureResourceDesc.Format = textureDesc.Format;
@@ -279,7 +279,7 @@ void Texture::CreateFromSize()
 	textureResourceDesc.Texture2D.MostDetailedMip = 0;
 
 	result = dxDevice->CreateShaderResourceView( m_texture, &textureResourceDesc, &m_colorMap );
-	assert( !FAILED( result ) );
+	assert( !WIN_FAILED( result ) );
 
 	m_imageSize.width = width;
 	m_imageSize.height = height;
@@ -333,7 +333,7 @@ void Texture::LoadImage( unify::Path filePath )
 		throw unify::Exception( "File format for \"" + m_parameters.source.ToString() + "\" not supported!" );
 	}
 
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
 	}
@@ -345,8 +345,8 @@ void Texture::LoadImage( unify::Path filePath )
 
 	D3D11_SUBRESOURCE_DATA data{};
 	data.pSysMem = m_scratch.GetImage( 0, 0, 0 )->pixels;
-	data.SysMemPitch = m_scratch.GetImage( 0, 0, 0 )->rowPitch;
-	data.SysMemSlicePitch = m_scratch.GetImage( 0, 0, 0 )->slicePitch;
+	data.SysMemPitch = (UINT)m_scratch.GetImage( 0, 0, 0 )->rowPitch;
+	data.SysMemSlicePitch = (UINT)m_scratch.GetImage( 0, 0, 0 )->slicePitch;
 
 	UINT cpuAccess {};
 
@@ -389,7 +389,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureDesc.CPUAccessFlags = cpuAccess;
 	textureDesc.MiscFlags = 0;
 	result = dxDevice->CreateTexture2D( &textureDesc, &data, &m_texture );
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		Destroy();
 		throw unify::Exception( "Failed to create from file image\"" + filePath.ToString() + "\"!" );
@@ -450,7 +450,7 @@ void Texture::LoadImage( unify::Path filePath )
 	colorMapDesc.MinLOD = 0;
 	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	result = dxDevice->CreateSamplerState( &colorMapDesc, &m_colorMapSampler );
-	assert( !FAILED( result ) );
+	assert( !WIN_FAILED( result ) );
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureResourceDesc{};
 	textureResourceDesc.Format = textureDesc.Format;
@@ -459,7 +459,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureResourceDesc.Texture2D.MostDetailedMip = 0;
 
 	result = dxDevice->CreateShaderResourceView( m_texture, &textureResourceDesc, &m_colorMap );
-	assert( !FAILED( result ) );
+	assert( !WIN_FAILED( result ) );
 
 	m_imageSize.width = width;
 	m_imageSize.height = height;

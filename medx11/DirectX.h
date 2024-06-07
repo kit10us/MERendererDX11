@@ -4,7 +4,7 @@
 
 // A common header to include Direct-X and Windows in a clean manor.
 
-#define WIN32_LEAN_AND_MEAN // For winsock.
+#include <port/win/Windows.h>
 
 #ifdef _DEBUG
 #define D3D_DEBUG_INFO
@@ -29,13 +29,5 @@
 #pragma comment( lib, "dxgi.lib" )
 #pragma comment( lib, "dwrite.lib" )
 #pragma comment( lib, "winmm.lib" )
-
-#ifdef min
-#undef min
-#endif
-
-#ifdef max
-#undef max
-#endif
 
 #pragma warning( pop )

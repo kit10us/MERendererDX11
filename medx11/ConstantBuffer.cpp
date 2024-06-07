@@ -52,7 +52,7 @@ void ConstantBuffer::Create( ConstantBufferParameters parameters )
 		ID3D11Buffer * createdBuffer;
 		HRESULT result = dxDevice->CreateBuffer( &constantBufferDesc, nullptr, &createdBuffer );
 		m_buffers.push_back( createdBuffer );
-		assert( !FAILED( result ) );
+		assert( !WIN_FAILED( result ) );
 	}
 }
 
@@ -146,23 +146,23 @@ void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 		switch( m_parameters.type )
 		{
 		case ResourceType::PixelShader:
-			dxContext->PSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[ startBuffer ] );
+			dxContext->PSSetConstantBuffers( (UINT)startSlot, (UINT)m_buffers.size(), &m_buffers[ startBuffer ] );
 			break;
 
 		case ResourceType::VertexShader:
-			dxContext->VSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->VSSetConstantBuffers((UINT)startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::ComputeShader:
-			dxContext->CSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->CSSetConstantBuffers((UINT)startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::DomainShader:
-			dxContext->DSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->DSSetConstantBuffers((UINT)startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		case ResourceType::GeometryShader:
-			dxContext->GSSetConstantBuffers( startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
+			dxContext->GSSetConstantBuffers((UINT)startSlot, (UINT)m_buffers.size(), &m_buffers[startBuffer] );
 			break;
 
 		default:
@@ -185,7 +185,7 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffers[bufferIndex], bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if( FAILED( result ) )
+	if( WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to lock " + me::render::ResourceType::ToString( m_parameters.type ) + " constant buffer!" );
 	}

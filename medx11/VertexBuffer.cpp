@@ -128,7 +128,7 @@ void VertexBuffer::Create( VertexBufferParameters parameters )
 				result = dxDevice->CreateBuffer( &vertexBufferDesc, nullptr, &buffer );
 			}
 			
-			if( FAILED( result ) )
+			if(WIN_FAILED( result ) )
 			{
 				throw unify::Exception( "Failed to create vertex buffer!" );
 			}
@@ -189,7 +189,7 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
@@ -206,7 +206,7 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 	auto dxContext = m_renderer->GetDxContext();
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffers[ bufferIndex ], (UINT)bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if ( FAILED( result ) )
+	if (WIN_FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
