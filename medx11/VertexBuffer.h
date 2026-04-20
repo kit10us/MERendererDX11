@@ -32,10 +32,10 @@ namespace medx11
 
 		void Use( size_t startBuffer, size_t startSlot ) const override;
 
-		void Lock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
-		void Unlock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
+		void Lock( size_t bufferIndex, me::util::DataLock & lock ) override;
+		void LockReadOnly( size_t bufferIndex, me::util::DataLock & lock ) const override;
+		void Unlock( size_t bufferIndex, me::util::DataLock & lock ) override;
+		void UnlockReadOnly( size_t bufferIndex, me::util::DataLock & lock ) const override;
 
 		bool Locked( size_t bufferIndex ) const override;
 

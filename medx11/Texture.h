@@ -10,7 +10,7 @@
 
 #include <me/render/TextureLock.h>
 #include <unify/Rect.h>
-#include <unify/Color.h>
+#include <unify/Colors.h>
 #include <unify/Path.h>
 
 #include <string>
@@ -75,7 +75,7 @@ namespace medx11
 
 		me::render::TextureLockAccess GetLockAccess() const override;
 
-		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access );
+		void LockRect( unsigned int level, me::render::TextureLock & lock, const unify::Rect< long > * rect, me::util::DataLockAccess::TYPE access );
 		
 		void UnlockRect( unsigned int level );
 

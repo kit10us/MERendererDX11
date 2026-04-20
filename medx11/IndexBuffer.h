@@ -35,10 +35,10 @@ namespace medx11
 
 		size_t GetBufferCount() const override;
 
-		void Lock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
-		void Unlock( size_t bufferIndex, unify::DataLock & lock ) override;
-		void UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const override;
+		void Lock( size_t bufferIndex, me::util::DataLock & lock ) override;
+		void LockReadOnly( size_t bufferIndex, me::util::DataLock & lock ) const override;
+		void Unlock( size_t bufferIndex, me::util::DataLock & lock ) override;
+		void UnlockReadOnly( size_t bufferIndex, me::util::DataLock & lock ) const override;
 
 		bool Valid() const;
 		

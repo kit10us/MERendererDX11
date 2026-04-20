@@ -30,8 +30,8 @@ namespace medx11
 
 		void Use( size_t startSlot, size_t startBuffer ) override;
 
-		void LockConstants( size_t bufferIndex, unify::DataLock & lock ) override;
-		void UnlockConstants( size_t buffer, unify::DataLock & lock ) override;
+		void LockConstants( size_t bufferIndex, me::util::DataLock & lock ) override;
+		void UnlockConstants( size_t buffer, me::util::DataLock & lock ) override;
 
 		me::render::ResourceType::TYPE GetType() const override;
 

@@ -181,7 +181,7 @@ void VertexBuffer::Use( size_t startBuffer, size_t startSlot ) const
 	dxContext->IASetVertexBuffers( 0, (UINT)m_buffers.size(), &m_buffers[0], (UINT*)&m_strides[0], &offsetInBytes[0] );
 }
 
-void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
+void VertexBuffer::Lock( size_t bufferIndex, util::DataLock & lock )
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer index out of range)!" );
 	if ( m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer already locked)!" );
@@ -194,11 +194,11 @@ void VertexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), util::DataLockAccess::ReadWrite, 0 );
 	m_locked[bufferIndex] = true;
 }
 
-void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void VertexBuffer::LockReadOnly( size_t bufferIndex, util::DataLock & lock ) const
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer index out of range)!" );
 	if ( m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to lock vertex  buffer (buffer already locked)!" );
@@ -211,11 +211,11 @@ void VertexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) co
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, (unsigned int)(m_strides[bufferIndex] * m_lengths[bufferIndex]), util::DataLockAccess::Readonly, 0 );
 	m_locked[bufferIndex] = true;
 }
 
-void VertexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
+void VertexBuffer::Unlock( size_t bufferIndex, util::DataLock & lock )
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer index out of range)!" );
 	if ( ! m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer not locked)!" );
@@ -228,7 +228,7 @@ void VertexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 	m_locked[bufferIndex] = false;
 }
 
-void VertexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void VertexBuffer::UnlockReadOnly( size_t bufferIndex, util::DataLock & lock ) const
 {
 	if ( bufferIndex >= m_buffers.size() ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer index out of range)!" );
 	if ( ! m_locked[ bufferIndex ] ) throw exception::FailedToLock( "Failed to unlock vertex  buffer (buffer not locked)!" );

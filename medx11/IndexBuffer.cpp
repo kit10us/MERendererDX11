@@ -170,7 +170,7 @@ size_t IndexBuffer::GetBufferCount() const
 	return m_buffer ? 1 : 0;
 }
 
-void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
+void IndexBuffer::Lock( size_t bufferIndex, util::DataLock & lock )
 {
 	if ( ! m_buffer ) throw exception::FailedToLock( "Failed to lock index buffer buffer (buffer not created)!" );
 	if ( m_locked ) throw exception::FailedToLock( "Failed to lock index buffer buffer (buffer already locked)!" );
@@ -183,11 +183,11 @@ void IndexBuffer::Lock( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, m_stride * m_length, unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, m_stride * m_length, util::DataLockAccess::ReadWrite, 0 );
 	m_locked = true;
 }
 
-void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void IndexBuffer::LockReadOnly( size_t bufferIndex, util::DataLock & lock ) const
 {
 	if ( ! m_buffer ) throw exception::FailedToLock( "Failed to lock index buffer buffer (buffer not created)!" );
 	if ( m_locked ) throw exception::FailedToLock( "Failed to lock index buffer buffer (buffer already locked)!" );
@@ -200,11 +200,11 @@ void IndexBuffer::LockReadOnly( size_t bufferIndex, unify::DataLock & lock ) con
 		throw unify::Exception( "Failed to set vertex shader!" );
 	}		
 
-	lock.SetLock( subresource.pData, m_stride * m_length, unify::DataLockAccess::Readonly, 0 );
+	lock.SetLock( subresource.pData, m_stride * m_length, util::DataLockAccess::Readonly, 0 );
 	m_locked = true;
 }
 
-void IndexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
+void IndexBuffer::Unlock( size_t bufferIndex, util::DataLock & lock )
 {
 	if ( ! m_buffer ) throw exception::FailedToLock( "Failed to unlock index buffer buffer (buffer not created)!" );
 	if ( ! m_locked ) throw exception::FailedToLock( "Failed to unlock index buffer buffer (buffer not locked)!" );
@@ -217,7 +217,7 @@ void IndexBuffer::Unlock( size_t bufferIndex, unify::DataLock & lock )
 	m_locked = false;
 }
 
-void IndexBuffer::UnlockReadOnly( size_t bufferIndex, unify::DataLock & lock ) const
+void IndexBuffer::UnlockReadOnly( size_t bufferIndex, util::DataLock & lock ) const
 {
 	if ( ! m_buffer ) throw exception::FailedToLock( "Failed to unlock index buffer buffer (buffer not created)!" );
 	if ( m_locked ) throw exception::FailedToLock( "Failed to unlock index buffer buffer (buffer not locked)!" );

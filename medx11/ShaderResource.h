@@ -24,7 +24,7 @@ namespace medx11
 
 	public: // me::render::IShaderResource
 		void Use() const override;
-		void Lock( unsigned int level, unify::DataLock & lock, unify::DataLockAccess::TYPE type ) override;
+		void Lock( unsigned int level, me::util::DataLock & lock, me::util::DataLockAccess::TYPE type ) override;
 		void Unlock( unsigned int level ) override;
 
 	public: // rm::IResource...

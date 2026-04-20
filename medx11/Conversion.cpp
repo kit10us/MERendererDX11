@@ -3,8 +3,9 @@
 //
 
 #include <medx11/Conversion.h>
-
+/*
 template<> 
+inline
 DXGI_FORMAT unify::Cast( me::render::Format::TYPE format )
 {
 	using namespace me::render;
@@ -131,6 +132,7 @@ DXGI_FORMAT unify::Cast( me::render::Format::TYPE format )
 }
 
 template<>
+inline
 me::render::Format::TYPE unify::Cast( DXGI_FORMAT format )
 {
 	using namespace me::render;
@@ -258,7 +260,8 @@ me::render::Format::TYPE unify::Cast( DXGI_FORMAT format )
 
 
 
-template<> 
+template<>
+inline
 D3D11_USAGE unify::Cast( me::render::BufferUsage::TYPE usage )
 {
 	using namespace me::render;
@@ -275,6 +278,7 @@ D3D11_USAGE unify::Cast( me::render::BufferUsage::TYPE usage )
 }
 
 template<> 
+inline
 me::render::BufferUsage::TYPE unify::Cast( D3D11_USAGE usage )
 {
 	using namespace me::render;
@@ -289,3 +293,4 @@ me::render::BufferUsage::TYPE unify::Cast( D3D11_USAGE usage )
 
 	throw unify::Exception( "Invalid usage!" );
 }
+*/

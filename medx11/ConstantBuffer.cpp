@@ -73,8 +73,8 @@ size_t ConstantBuffer::GetBufferCount() const
 }
 
 void ConstantBuffer::Update( const RenderInfo & renderInfo, const unify::Matrix * world, size_t world_size )
-{
-	unify::DataLock lock;
+{  
+	util::DataLock lock;
 
 	auto worldRef = m_table.GetWorld();
 	auto viewRef = m_table.GetView();
@@ -83,7 +83,7 @@ void ConstantBuffer::Update( const RenderInfo & renderInfo, const unify::Matrix 
 	size_t bufferIndex = 0;
 	for( size_t bufferIndex = 0, buffer_count = m_table.BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 	{
-		unify::DataLock lock;
+		util::DataLock lock;
 		LockConstants( bufferIndex, lock );
 
 		// Set automatic variables...
@@ -129,7 +129,7 @@ void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 		// Access test...
 		if( ( m_bufferAccessed & (1 << buffer) ) != (1 << buffer) )
 		{
-			unify::DataLock lock;
+			util::DataLock lock;
 			LockConstants( buffer, lock );
 			UnlockConstants( buffer, lock );
 		}
@@ -173,7 +173,7 @@ void ConstantBuffer::Use( size_t startSlot, size_t startBuffer )
 	m_bufferAccessed = 0;
 }
 
-void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
+void ConstantBuffer::LockConstants( size_t bufferIndex, util::DataLock & lock )
 {
 	if( (m_locked & (1 << bufferIndex)) == (1 << bufferIndex) ) throw exception::FailedToLock( "Failed to lock vertex shader constant buffer!" );
 
@@ -190,7 +190,7 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 		throw unify::Exception( "Failed to lock " + me::render::ResourceType::ToString( m_parameters.type ) + " constant buffer!" );
 	}
 
-	lock.SetLock( subresource.pData, m_table.GetSizeInBytes( bufferIndex ), unify::DataLockAccess::ReadWrite, 0 );
+	lock.SetLock( subresource.pData, m_table.GetSizeInBytes( bufferIndex ), util::DataLockAccess::ReadWrite, 0 );
 
 	// Roughly handle defaults...
 	for( auto variable : m_table.GetVariables( bufferIndex ) )
@@ -202,7 +202,7 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, unify::DataLock & lock )
 	}
 }
 
-void ConstantBuffer::UnlockConstants( size_t buffer, unify::DataLock & lock )
+void ConstantBuffer::UnlockConstants( size_t buffer, util::DataLock & lock )
 {
 	if( (m_locked & (1 << buffer)) != (1 << buffer) ) throw exception::FailedToLock( "Failed to unlock vertex shader constant buffer (buffer not locked)!" );
 

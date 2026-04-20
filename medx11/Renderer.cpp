@@ -298,7 +298,7 @@ void Renderer::Render( const me::render::RenderInfo & renderInfo, const me::rend
 
 				for( size_t bufferIndex = 0, buffer_count = constantTable->BufferCount(); bufferIndex < buffer_count; bufferIndex++ )
 				{
-					unify::DataLock lock;
+					util::DataLock lock;
 					vertexCB->LockConstants( bufferIndex, lock );
 
 					if ( bufferIndex == viewRef.buffer )

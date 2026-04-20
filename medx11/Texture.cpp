@@ -3,11 +3,14 @@
 //
 
 #include <medx11/Texture.h>
+#include <medx11/Conversion.h>
 
 #include <DDS.h>
 #pragma comment( lib, "DirectXTex" )
+
 #include <me/exception/NotImplemented.h>
 #include <me/exception/FailedToLock.h>
+
 #include <qxml/Document.h>
 
 // MS agressive macros.
@@ -76,11 +79,11 @@ me::render::TextureLockAccess Texture::GetLockAccess() const
 	return m_parameters.lockAccess;
 }
 
-void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rect< long > * rect, unify::DataLockAccess::TYPE access )
+void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rect< long > * rect, util::DataLockAccess::TYPE access )
 {
-	if ( ! unify::DataLockAccess::Compatible( access, m_parameters.lockAccess.cpu ) )
+	if ( !util::DataLockAccess::Compatible( access, m_parameters.lockAccess.cpu ) )
 	{
-		throw exception::FailedToLock( "Attempted to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );
+		throw exception::FailedToLock( "Attempted to lock texture with access " + me::Cast<std::string>( m_parameters.lockAccess.cpu ) + " for unsupported access " + me::Cast<std::string>( access ) + "!" );
 	}
 
 	if ( ! m_scratch.GetImageCount() )
@@ -91,18 +94,18 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 
 			switch( access )
 			{
-			case DataLockAccess::Readonly:
+			case util::DataLockAccess::Readonly:
 				mapType = D3D11_MAP_READ;
 				break;
-			case DataLockAccess::Writeonly:
+			case util::DataLockAccess::Writeonly:
 				mapType = D3D11_MAP_WRITE_DISCARD;
 				break;
-			case DataLockAccess::ReadWrite:
+			case util::DataLockAccess::ReadWrite:
 				mapType = D3D11_MAP_READ_WRITE;
 				break;
 
 			default:
-				throw me::exception::FailedToLock( "Attempted to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) +"!" );
+				throw me::exception::FailedToLock( "Attempted to lock texture with access " + me::Cast<std::string>( m_parameters.lockAccess.cpu ) + " for unsupported access " + me::Cast<std::string>( access ) +"!" );
 			}
 		}
 		
@@ -111,7 +114,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 		auto result = dxContext->Map( m_texture, 0, mapType, 0, &mappedResource );
 		if (WIN_FAILED( result ) )
 		{
-			throw me::exception::FailedToLock( "Failed to lock texture with access " + unify::DataLockAccess::ToString( m_parameters.lockAccess.cpu ) + " for unsupported access " + unify::DataLockAccess::ToString( access ) + "!" );
+			throw me::exception::FailedToLock( "Failed to lock texture with access " + me::Cast<std::string>( m_parameters.lockAccess.cpu ) + " for unsupported access " + me::Cast<std::string>( access ) + "!" );
 		}
 
 		lock.pBits = (unsigned char*)mappedResource.pData;
@@ -201,7 +204,7 @@ void Texture::CreateFromSize()
 	textureDesc.Height = height;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = unify::Cast< DXGI_FORMAT >( m_parameters.format );
+	textureDesc.Format = Cast< DXGI_FORMAT >( m_parameters.format );
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -341,7 +344,7 @@ void Texture::LoadImage( unify::Path filePath )
 	UINT width = (UINT)m_scratch.GetImage( 0, 0, 0 )->width;
 	UINT height = (UINT)m_scratch.GetImage( 0, 0, 0 )->height;
 
-	m_parameters.format = unify::Cast< me::render::Format::TYPE >( m_scratch.GetImage( 0, 0, 0 )->format );
+	m_parameters.format = medx11::Cast< me::render::Format::TYPE >( m_scratch.GetImage( 0, 0, 0 )->format );
 
 	D3D11_SUBRESOURCE_DATA data{};
 	data.pSysMem = m_scratch.GetImage( 0, 0, 0 )->pixels;
@@ -355,13 +358,13 @@ void Texture::LoadImage( unify::Path filePath )
 
 		switch( m_parameters.lockAccess.cpu )
 		{
-		case DataLockAccess::Readonly:
+		case util::DataLockAccess::Readonly:
 			cpuAccess = D3D11_CPU_ACCESS_READ;
 			break;
-		case DataLockAccess::Writeonly:
+		case util::DataLockAccess::Writeonly:
 			cpuAccess = D3D11_CPU_ACCESS_WRITE;
 			break;
-		case DataLockAccess::ReadWrite:
+		case util::DataLockAccess::ReadWrite:
 			cpuAccess = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 			break;
 
@@ -384,7 +387,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureDesc.Format = m_scratch.GetImage( 0, 0, 0 )->format;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.Usage = unify::Cast< D3D11_USAGE >( m_parameters.usage );
+	textureDesc.Usage = medx11::Cast< D3D11_USAGE >( m_parameters.usage );
 	textureDesc.BindFlags = bindFlags;
 	textureDesc.CPUAccessFlags = cpuAccess;
 	textureDesc.MiscFlags = 0;
