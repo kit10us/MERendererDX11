@@ -12,6 +12,7 @@
 #include <me/exception/FailedToLock.h>
 
 #include <qxml/Document.h>
+#include <unify/Cast.h>
 
 // MS agressive macros.
 #ifdef LoadImage
@@ -215,7 +216,7 @@ void Texture::CreateFromSize()
 	if (WIN_FAILED( result ))
 	{
 		Destroy();
-		throw unify::Exception( "Failed to create texture of size " + unify::Cast< std::string >( width ) + "x" + unify::Cast< std::string >( height ) + "!" );
+		throw unify::Exception( "Failed to create texture of size " + *unify::ToString( width ) + "x" + *unify::ToString( height ) + "!" );
 	}
 
 	D3D11_SAMPLER_DESC colorMapDesc{};

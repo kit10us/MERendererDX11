@@ -4,7 +4,7 @@
 
 // A common header to include Direct-X and Windows in a clean manor.
 
-#include <port/win/Windows.h>
+#include <port/win/general.h>
 
 #ifdef _DEBUG
 #define D3D_DEBUG_INFO
