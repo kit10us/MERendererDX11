@@ -5,8 +5,7 @@
 #include <me/exception/FailedToCreate.h>
 #include <me/exception/FailedToLock.h>
 #include <me/exception/NotImplemented.h>
-
-#include <unify/DataLock.h>
+#include <me/util/DataLock.h>
 
 using namespace medx11;
 using namespace me;
@@ -54,7 +53,7 @@ void ConstantBuffer::Create( ConstantBufferParameters parameters )
 		ID3D11Buffer * createdBuffer;
 		HRESULT result = dxDevice->CreateBuffer( &constantBufferDesc, nullptr, &createdBuffer );
 		m_buffers.push_back( createdBuffer );
-		assert( !WIN_FAILED( result ) );
+		assert( !FAILED( result ) );
 	}
 }
 
@@ -187,7 +186,7 @@ void ConstantBuffer::LockConstants( size_t bufferIndex, util::DataLock & lock )
 
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 	HRESULT result = dxContext->Map( m_buffers[bufferIndex], bufferIndex, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &subresource );
-	if( WIN_FAILED( result ) )
+	if(FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to lock " + me::render::ResourceType::ToString( m_parameters.type ) + " constant buffer!" );
 	}

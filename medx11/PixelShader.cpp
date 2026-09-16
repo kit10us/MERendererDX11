@@ -58,16 +58,16 @@ void PixelShader::Create( PixelShaderParameters parameters )
 	{
 		result = D3DCompile( m_parameters.code.c_str(), m_parameters.code.length(), nullptr, nullptr, nullptr, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_pixelShaderBuffer, &errorBlob );
 	}
-	else if ( !m_parameters.path.Empty() )
+	else if ( !m_parameters.path.IsEmpty() )
 	{
-		result = D3DCompileFromFile( unify::Cast< std::wstring >( m_parameters.path.ToString() ).c_str(), shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_pixelShaderBuffer, &errorBlob );
+		result = D3DCompileFromFile( (*unify::ToWString( m_parameters.path.ToString() )).c_str(), shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_pixelShaderBuffer, &errorBlob );
 	}
 	else
 	{
 		throw exception::FailedToCreate( "Failed to create shader, neither code nor file path specified!" );
 	}
 
-	if (WIN_FAILED( result ) )
+	if (FAILED( result ) )
 	{
 		OutputDebugStringA( (char*)errorBlob->GetBufferPointer() );
 		throw exception::FailedToCreate( std::string( "Failed to create shader \"" ) + m_parameters.path.ToString() + "\": " +  std::string( (char*)errorBlob->GetBufferPointer() ) );
@@ -77,7 +77,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 
 	ID3D11ClassLinkage * classLinkage = nullptr;
 	result = dxDevice->CreatePixelShader( m_pixelShaderBuffer->GetBufferPointer(), m_pixelShaderBuffer->GetBufferSize(), classLinkage, &m_pixelShader );
-	if (WIN_FAILED( result ) )
+	if (FAILED( result ) )
 	{
 		throw exception::FailedToCreate( "Failed to create shader!" );
 	}
@@ -96,7 +96,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 		m_blendDesc.RenderTarget[0].RenderTargetWriteMask = (UINT8)parameters.blendDesc.renderTargetWriteMask;
 		HRESULT hr = dxDevice->CreateBlendState( &m_blendDesc, &m_blendState );
 
-		if( WIN_FAILED( hr ) )
+		if( FAILED( hr ) )
 		{
 			throw exception::FailedToCreate( "Failed to create pixel shader \"" + m_parameters.path.ToString() + "\" blending state!" );
 		}

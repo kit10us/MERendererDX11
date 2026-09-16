@@ -86,7 +86,7 @@ VertexConstruct::VertexConstruct( IRenderer * renderer, const VertexDeclaration 
 	}
 
 	HRESULT hr = m_renderer->GetDxDevice()->CreateInputLayout( &elements[0], (UINT)elements.size(), vs.GetBytecode(), vs.GetBytecodeLength(), &m_layout );
-	if (WIN_FAILED( hr ) )
+	if (FAILED( hr ) )
 	{
 		throw unify::Exception( "Failed to create vertex declaration!" );
 	}

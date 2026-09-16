@@ -40,7 +40,7 @@ Texture::~Texture()
 void Texture::Create()
 {
 	// Load from a file.
-	if ( ! m_parameters.source.Empty() )
+	if ( ! m_parameters.source.IsEmpty() )
 	{
 		LoadHeader();
 		LoadImage( m_parameters.source );
@@ -113,7 +113,7 @@ void Texture::LockRect( unsigned int level, TextureLock & lock, const unify::Rec
 		auto dxContext = m_renderer->GetDxContext();
 		D3D11_MAPPED_SUBRESOURCE mappedResource{};
 		auto result = dxContext->Map( m_texture, 0, mapType, 0, &mappedResource );
-		if (WIN_FAILED( result ) )
+		if (FAILED( result ) )
 		{
 			throw me::exception::FailedToLock( "Failed to lock texture with access " + me::Cast<std::string>( m_parameters.lockAccess.cpu ) + " for unsupported access " + me::Cast<std::string>( access ) + "!" );
 		}
@@ -192,7 +192,7 @@ void Texture::CreateFromSize()
 
 	DirectX::TexMetadata texMetadata{};
 
-	if (WIN_FAILED( result ))
+	if (FAILED( result ))
 	{
 		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
 	}
@@ -213,7 +213,7 @@ void Texture::CreateFromSize()
 	textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	textureDesc.MiscFlags = 0;
 	result = dxDevice->CreateTexture2D( &textureDesc, nullptr, &m_texture );
-	if (WIN_FAILED( result ))
+	if (FAILED( result ))
 	{
 		Destroy();
 		throw unify::Exception( "Failed to create texture of size " + *unify::ToString( width ) + "x" + *unify::ToString( height ) + "!" );
@@ -274,7 +274,7 @@ void Texture::CreateFromSize()
 	colorMapDesc.MinLOD = 0;
 	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	result = dxDevice->CreateSamplerState( &colorMapDesc, &m_colorMapSampler );
-	assert( !WIN_FAILED( result ) );
+	assert( !FAILED( result ) );
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureResourceDesc{};
 	textureResourceDesc.Format = textureDesc.Format;
@@ -283,7 +283,7 @@ void Texture::CreateFromSize()
 	textureResourceDesc.Texture2D.MostDetailedMip = 0;
 
 	result = dxDevice->CreateShaderResourceView( m_texture, &textureResourceDesc, &m_colorMap );
-	assert( !WIN_FAILED( result ) );
+	assert( !FAILED( result ) );
 
 	m_imageSize.width = width;
 	m_imageSize.height = height;
@@ -322,22 +322,22 @@ void Texture::LoadImage( unify::Path filePath )
 
 	if ( m_parameters.source.IsExtension( "DDS" ) )
 	{
-		result = DirectX::LoadFromDDSFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &texMetadata, m_scratch );
+		result = DirectX::LoadFromDDSFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "BMP" ) || m_parameters.source.IsExtension( "JPG" ) || m_parameters.source.IsExtension( "JPEG" ) || m_parameters.source.IsExtension( "TIFF" ) || m_parameters.source.IsExtension( "TIF" ) || m_parameters.source.IsExtension( "HDP" ) || m_parameters.source.IsExtension( "PNG" ) )
 	{
-		result = DirectX::LoadFromWICFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &texMetadata, m_scratch );
+		result = DirectX::LoadFromWICFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "TGA" ) )
 	{
-		result = DirectX::LoadFromTGAFile( unify::Cast< std::wstring >( m_parameters.source.ToString() ).c_str(), &texMetadata, m_scratch );
+		result = DirectX::LoadFromTGAFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), &texMetadata, m_scratch );
 	}
 	else
 	{
 		throw unify::Exception( "File format for \"" + m_parameters.source.ToString() + "\" not supported!" );
 	}
 
-	if (WIN_FAILED( result ) )
+	if (FAILED( result ) )
 	{
 		throw unify::Exception( "Failed to load image \"" + m_parameters.source.ToString() + "\"!" );
 	}
@@ -393,7 +393,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureDesc.CPUAccessFlags = cpuAccess;
 	textureDesc.MiscFlags = 0;
 	result = dxDevice->CreateTexture2D( &textureDesc, &data, &m_texture );
-	if (WIN_FAILED( result ) )
+	if (FAILED( result ) )
 	{
 		Destroy();
 		throw unify::Exception( "Failed to create from file image\"" + filePath.ToString() + "\"!" );
@@ -454,7 +454,7 @@ void Texture::LoadImage( unify::Path filePath )
 	colorMapDesc.MinLOD = 0;
 	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	result = dxDevice->CreateSamplerState( &colorMapDesc, &m_colorMapSampler );
-	assert( !WIN_FAILED( result ) );
+	assert( !FAILED( result ) );
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC textureResourceDesc{};
 	textureResourceDesc.Format = textureDesc.Format;
@@ -463,7 +463,7 @@ void Texture::LoadImage( unify::Path filePath )
 	textureResourceDesc.Texture2D.MostDetailedMip = 0;
 
 	result = dxDevice->CreateShaderResourceView( m_texture, &textureResourceDesc, &m_colorMap );
-	assert( !WIN_FAILED( result ) );
+	assert( !FAILED( result ) );
 
 	m_imageSize.width = width;
 	m_imageSize.height = height;
