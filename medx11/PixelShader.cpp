@@ -60,7 +60,7 @@ void PixelShader::Create( PixelShaderParameters parameters )
 	}
 	else if ( !m_parameters.path.IsEmpty() )
 	{
-		result = D3DCompileFromFile( (*unify::ToWString( m_parameters.path.ToString() )).c_str(), shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_pixelShaderBuffer, &errorBlob );
+		result = D3DCompileFromFile( (unify::ToWString( m_parameters.path.ToString() )).c_str(), shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE, m_parameters.entryPointName.c_str(), m_parameters.profile.c_str(), flags1, flags2, &m_pixelShaderBuffer, &errorBlob );
 	}
 	else
 	{

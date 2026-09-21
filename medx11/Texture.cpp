@@ -216,7 +216,7 @@ void Texture::CreateFromSize()
 	if (FAILED( result ))
 	{
 		Destroy();
-		throw unify::Exception( "Failed to create texture of size " + *unify::ToString( width ) + "x" + *unify::ToString( height ) + "!" );
+		throw unify::Exception( "Failed to create texture of size " + unify::ToString( width ) + "x" + unify::ToString( height ) + "!" );
 	}
 
 	D3D11_SAMPLER_DESC colorMapDesc{};
@@ -322,15 +322,15 @@ void Texture::LoadImage( unify::Path filePath )
 
 	if ( m_parameters.source.IsExtension( "DDS" ) )
 	{
-		result = DirectX::LoadFromDDSFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &texMetadata, m_scratch );
+		result = DirectX::LoadFromDDSFile( unify::ToWString( m_parameters.source.ToString() ).c_str(), DirectX::DDS_FLAGS::DDS_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "BMP" ) || m_parameters.source.IsExtension( "JPG" ) || m_parameters.source.IsExtension( "JPEG" ) || m_parameters.source.IsExtension( "TIFF" ) || m_parameters.source.IsExtension( "TIF" ) || m_parameters.source.IsExtension( "HDP" ) || m_parameters.source.IsExtension( "PNG" ) )
 	{
-		result = DirectX::LoadFromWICFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &texMetadata, m_scratch );
+		result = DirectX::LoadFromWICFile( unify::ToWString( m_parameters.source.ToString() ).c_str(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, &texMetadata, m_scratch );
 	}
 	else if ( m_parameters.source.IsExtension( "TGA" ) )
 	{
-		result = DirectX::LoadFromTGAFile( unify::ToWString( m_parameters.source.ToString() )->c_str(), &texMetadata, m_scratch );
+		result = DirectX::LoadFromTGAFile( unify::ToWString( m_parameters.source.ToString() ).c_str(), &texMetadata, m_scratch );
 	}
 	else
 	{
